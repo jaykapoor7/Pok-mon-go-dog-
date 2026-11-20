@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { call as rpc } from "@/oh/data";
 import { FlaskConical, Info, Lock, Route, Stethoscope, Syringe } from "lucide-react";
-import { SERVICE_LABEL, call, select, useNames, useRead, type ClinicDue, type ClinicTransfers, type Notice, type RegisterRow, type Sample } from "@/oh/data";
+import { AGE, SERVICE_LABEL, call, select, useNames, useRead, type ClinicDue, type ClinicTransfers, type Notice, type RegisterRow, type Sample } from "@/oh/data";
 import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample as SampleChip } from "../ui";
@@ -32,7 +32,9 @@ const privacy = <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13}
 
 /** The clinic or laboratory this person works in. A veterinarian of an NGO is not one: their view is the veterinary one. */
 export function useClinic() { const live = useLive(); const h = live.orgFor("healthcare"); return h?.kind === "veterinary" ? null : h; }
-export function NotHealth({ crumb }: { crumb: string }) {
+export function NotHealth({ crumb, lab = false }: { crumb: string; lab?: boolean }) {
+  /* A laboratory is a health place, but bite records and PEP courses belong to the hospitals and health centres that treat people. */
+  if (lab) return <Shell ws="health" crumb={["Healthcare", crumb]}><div className="nx-page"><h1 className="nx-h1">{crumb}</h1><p className="nx-sub">Bite records and PEP courses are kept by the hospitals and health centres that treat people. A laboratory works with the samples sent to it: open Samples or Results.</p></div></Shell>;
   return <Shell ws="health" crumb={["Healthcare", crumb]}><div className="nx-page"><h1 className="nx-h1">{crumb}</h1><p className="nx-sub">Your account is not part of a hospital, clinic or laboratory, so there are no clinical records here. Access to clinical records is granted by the facility; it cannot be chosen from a menu.</p></div></Shell>;
 }
 
@@ -61,8 +63,10 @@ const bitePreview = (r: BiteRow) => ({
 
 function shapeBite(r: RegisterRow): BiteRow {
   const t = today(), late = !!r.next_due && r.next_due < t;
-  const course = r.category === "pending" || !r.course_status ? (r.category === "I" ? "Completed" : "Waiting for a clinician") : r.course_status === "completed" ? "Completed" : r.course_status === "lost_to_follow_up" ? "Did not return" : "In course";
-  return { id: r.id, code: r.code, ref: r.patient_ref ?? "No reference", age: r.age_band, category: r.category === "pending" ? "Not yet assessed" : r.category, species: word(r.species), area: r.area ?? "—", on: d(r.exposure_on), course, doses: r.doses_total ? `${r.doses_given} of ${r.doses_total} given` : "—", next: r.next_due ? (late ? `Overdue since ${d(r.next_due)}` : r.next_due === t ? "Today" : d(r.next_due)) : null, late, href: `/health/bites/${r.id}` };
+  /* The database records an unassessed bite as "not_recorded" ("pending" is the older word, kept for old rows). */
+  const unassessed = r.category === "not_recorded" || r.category === "pending";
+  const course = unassessed || !r.course_status ? (r.category === "I" ? "Completed" : "Waiting for a clinician") : r.course_status === "completed" ? "Completed" : r.course_status === "lost_to_follow_up" ? "Did not return" : "In course";
+  return { id: r.id, code: r.code, ref: r.patient_ref ?? "No reference", age: AGE[r.age_band] ?? r.age_band, category: unassessed ? "Not yet assessed" : r.category, species: word(r.species), area: r.area ?? "—", on: d(r.exposure_on), course, doses: r.doses_total ? `${r.doses_given} of ${r.doses_total} given` : "—", next: r.next_due ? (late ? `Overdue since ${d(r.next_due)}` : r.next_due === t ? "Today" : d(r.next_due)) : null, late, href: `/health/bites/${r.id}` };
 }
 
 export function Bites() {
@@ -71,7 +75,7 @@ export function Bites() {
   const rows = useMemo(() => (org && reg.data ? reg.data.map((r) => shapeBite(r)) : []), [org, reg.data]);
   if (!live.ready) return <Shell ws="health" crumb={["Healthcare", "Bite cases"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
-  if (!sample && (!org || isLab(org))) return <NotHealth crumb="Bite cases" />;
+  if (!sample && (!org || isLab(org))) return <NotHealth crumb="Bite cases" lab={!!org && isLab(org)} />;
   const list = sample ? BITES.map((b) => ({ ...b, late: (b.next ?? "").startsWith("Overdue"), href: `/health/bites/${b.id}` })) : rows;
   return <ListPage ws="health" crumb={["Healthcare", "Bite cases"]} eyebrow={<>{sample ? CLINIC.name : org!.name}<GhMark /></>} title="Bite cases" sample={sample}
     sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. <About>Categories and doses are entered by clinicians.</About></> : "Reading the register…"}
@@ -100,7 +104,7 @@ export function Pep() {
   const rows = useMemo<DoseRow[]>(() => (org && due.data ? due.data.due.map((x) => { const t = due.data!.today, late = x.due_on < t; return { id: x.dose_id, code: x.code, ref: x.patient_ref ?? "No reference", dose: `Dose ${x.dose_no} of ${x.doses_total}`, due: late ? `Overdue since ${d(x.due_on)}` : x.due_on === t ? "Today" : d(x.due_on), late, isToday: x.due_on === t, reminder: x.last_reminder ? `${d(x.last_reminder.at)}, ${word(x.last_reminder.outcome).toLowerCase()}` : "None yet", href: `/health/bites/${x.exposure_id}`, doseNo: x.dose_no, dueOn: x.due_on, phone: x.phone }; }) : []), [org, due.data]);
   if (!live.ready) return <Shell ws="health" crumb={["Healthcare", "PEP"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
-  if (!sample && (!org || isLab(org))) return <NotHealth crumb="PEP" />;
+  if (!sample && (!org || isLab(org))) return <NotHealth crumb="PEP" lab={!!org && isLab(org)} />;
   const list = sample ? SAMPLE_DOSES : rows;
   return <ListPage ws="health" crumb={["Healthcare", "PEP"]} eyebrow={<>{sample ? CLINIC.name : org!.name}<GhMark /></>} title="Doses due" sample={sample}
     sub={sample || due.data ? <><b className="num">{list.filter((r) => r.isToday).length}</b> due today, <b className="num">{list.filter((r) => r.late).length}</b> overdue. <About>Schedules are the clinician&apos;s; StrayPaw only counts the days.</About></> : "Reading doses…"}
@@ -133,7 +137,7 @@ export function Samples({ title = "Samples" }: { title?: string }) {
   const list = useMemo<SRow[]>(() => (org && rows.data ? rows.data.map((s) => ({ id: s.id, code: s.code, species: word(s.species), type: word(s.sample_type), from: names.org(s.submitted_by) ?? "Submitting partner", area: s.place ?? names.area(s.area_id) ?? "—", collected: d(s.collected_on), status: word(s.status), result: s.status === "resulted" && s.result ? word(s.result) : null, days: Math.floor((now - Date.parse(s.collected_on)) / 864e5), href: `/health/samples/${s.id}`, raw: s })) : []), [org, rows.data, now, names]);
   if (!live.ready) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
-  if (!sample && !isLab(org)) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><h1 className="nx-h1">{title}</h1><p className="nx-sub">Receiving and testing samples is a laboratory&apos;s work. {org ? `${org.name} is not a laboratory.` : "Your account is not part of a laboratory."}</p><p style={{ marginTop: 16 }}><Link href="/health/samples/new" className="nx-btn is-quiet">Send a sample to a laboratory</Link></p></div></Shell>;
+  if (!sample && !isLab(org)) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><h1 className="nx-h1">{title}</h1><p className="nx-sub">Receiving and testing samples is a laboratory&apos;s work. {org ? `${org.name} is not a laboratory.` : "Your account is not part of a laboratory."}</p><p className="nx-sub">Results for samples sent from here arrive under Referrals, in Requests to us.</p><p style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}><Link href="/health/samples/new" className="nx-btn is-quiet">Send a sample to a laboratory</Link><Link href="/health/referrals?view=req" className="nx-btn is-quiet">Results from laboratories</Link></p></div></Shell>;
   const data: SRow[] = sample ? LAB_SAMPLES.map((r) => ({ ...r, href: `/health/samples/${r.id}` })) : list;
   const queue = data.filter((r) => r.status !== "Resulted");
   return <ListPage ws="health" crumb={["Healthcare", title]} eyebrow={<>{sample ? "Reference Rabies Diagnostic Laboratory" : org!.name}<GhMark /></>} title={title} sample={sample}
@@ -173,7 +177,8 @@ export function HealthToday() {
   const coming = sample ? REFERRALS.filter((r) => r.dir === "in" && r.status === "Referred").map((r) => ({ id: r.id, code: r.code, meta: `From ${r.other} · ${r.service}`, sent: r.sent }))
     : tr.data ? tr.data.incoming.filter((x) => x.status === "sent").map((x) => ({ id: x.id, code: x.code, meta: `From ${x.from_short ?? x.from} · ${SERVICE_LABEL[x.service] ?? word(x.service)}`, sent: d(x.sent_at) })) : null;
   const comingN = sample ? coming!.length : st(tr, () => coming!.length);
-  const fresh = sample ? null : notices.data ? notices.data.filter((n) => n.status === "new") : null;
+  /* A notice stays until the person comes in (or it is closed): one marked contacted still needs "Patient came in". */
+  const fresh = sample ? null : notices.data ? notices.data.filter((n) => n.status === "new" || n.status === "contacted") : null;
   /* The dose load: overdue, today and each of the next six days, from the same list the PEP page reads. */
   const dueList = sample ? [...SAMPLE_DOSES.filter((x) => x.late).map(() => ({ due_on: "" })), ...SAMPLE_DOSES.filter((x) => x.isToday).map(() => ({ due_on: t }))] : due.data?.due ?? null;
   const week = dueList ? [{ key: "Overdue", n: dueList.filter((x) => x.due_on < t).length, tone: "warn" as const }, ...Array.from({ length: 7 }, (_, i) => { const dd = new Date(`${t}T12:00:00`); dd.setDate(dd.getDate() + i); const iso = dd.toISOString().slice(0, 10); return { key: i === 0 ? "Today" : dd.toLocaleDateString("en-IN", { weekday: "short" }), n: dueList.filter((x) => x.due_on === iso).length, tone: i === 0 ? "blue" as const : "plain" as const }; })] : null;
@@ -213,7 +218,7 @@ export function HealthToday() {
                 <li key={n.id} className="hm-row" data-tour="notice" data-area={n.raw?.area ?? undefined}>
                   <div className="hm-row-m"><span className="hm-row-i t-blue" aria-hidden><Info size={16} /></span><span className="hm-row-t"><b>{n.what}</b><small><span className="hm-row-meta">{n.where} · {n.cb ? "asked to be called back" : "no callback requested"}{n.phone ? <> · <a href={`tel:${n.phone.replace(/\s/g, "")}`} className="hm-link">{n.phone}</a></> : null}</span></small><NoticeActions sample={sample} n={n.raw} onDone={() => notices.reload()} /></span></div>
                 </li>))}</ul>
-            ) : <p className="hm-empty">No new notices.</p>}
+            ) : <p className="hm-empty">No notices waiting.</p>}
             {noticeRows.length > 5 ? <button type="button" className="hm-all" aria-expanded={allNotices} onClick={() => setAllNotices((a) => !a)}>{allNotices ? "Show fewer" : `Show all ${Math.min(noticeRows.length, 30)}`}</button> : null}
           </Panel>
         </Grid>
@@ -285,7 +290,8 @@ function NoticeActions({ sample, n, onDone }: { sample: boolean; n: Notice | nul
   if (sample || !n) return <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}><Link href="/try" className="nx-btn is-sm is-quiet" title="Opens the live demo, where this works">Contacted</Link><Link href="/health/bites/new?notice=sample" className="nx-btn is-sm is-quiet">Patient came in</Link></div>;
   const q = new URLSearchParams({ notice: n.id, species: n.animal_species, on: n.happened_on, ...(n.area ? { area: n.area } : {}), ...(n.animal_description ? { animal: n.animal_description } : {}), ...(n.place ? { place: n.place } : {}) });
   return <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-    <button type="button" className="nx-btn is-sm is-quiet" disabled={!!busy} onClick={async () => { const r = await run("notice", () => rpc("oh_update_notice", { p_notice: n.id, p_status: "contacted" }), { ok: "Marked as contacted." }); if (r.ok) onDone(); }}>Contacted</button>
+    {n.status === "contacted" ? <span className="nx-t3" style={{ alignSelf: "center" }}>Contacted</span>
+      : <button type="button" className="nx-btn is-sm is-quiet" disabled={!!busy} onClick={async () => { const r = await run("notice", () => rpc("oh_update_notice", { p_notice: n.id, p_status: "contacted" }), { ok: "Marked as contacted. It stays here until the person comes in." }); if (r.ok) onDone(); }}>Contacted</button>}
     <Link href={`/health/bites/new?${q.toString()}`} className="nx-btn is-sm is-quiet" data-tour="notice-came">Patient came in</Link>
   </div>;
 }

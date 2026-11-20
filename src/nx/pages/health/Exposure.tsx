@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
-import { ArrowRight, Lock, Phone, Plus, Stethoscope, X } from "lucide-react";
+import { ArrowRight, Info, Lock, Phone, Plus, Stethoscope, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { AGE, AUDIT, COURSE, EXPOSURE_KIND, HANDOFF, REMINDER, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, SEX, SPECIES, TRANSFER, WASHED, call, fmtDate, useRead, type Dose, type Exposure, type Place, type ReferralOption, type TransferOut } from "@/oh/data";
 import { Shell } from "../../Shell";
@@ -61,7 +61,10 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
   const [refer, setRefer] = useState(false);
   const [withdraw, setWithdraw] = useState<TransferOut | null>(null);
   const { busy, run } = useAct();
-  const nextDue = e.doses.find((d) => d.status === "due") ?? null;
+  /* Doses in date order: a date added after a missed dose (dose 5 on 24 Nov) comes before a later one (dose 4 on 18 Dec),
+     and the next dose to record is the earliest one due, not the lowest number. */
+  const doses = [...e.doses].sort((a, b) => a.due_on.localeCompare(b.due_on) || a.dose_no - b.dose_no);
+  const nextDue = doses.find((d) => d.status === "due") ?? null;
   const setWashed = async (v: string) => {
     const before = e.wound_washed;
     const r = await run("wash", () => call("oh_set_wound_washed", { p_exposure: e.id, p_value: v }), { ok: `Wound washing recorded: ${(WASHED[v] ?? v).toLowerCase()}.`, undo: () => call("oh_set_wound_washed", { p_exposure: e.id, p_value: before }).then(() => reload()) });
@@ -77,9 +80,9 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
   const catControl = assess && (e.category === "not_recorded" || changeCat)
     ? <span className="gh-acts">{["I", "II", "III"].map((c) => sample ? <TryLink key={c} sm quiet>Category {c}</TryLink> : <button key={c} type="button" className="nx-btn is-sm is-quiet" disabled={!!busy} onClick={() => setCat(c)}>Category {c}</button>)}{changeCat ? <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setChangeCat(false)}>Keep {e.category}</button> : null}</span>
     : e.category === "not_recorded" ? <span className="nx-t3">Waiting for a clinician</span>
-    : <span>Category {e.category}{e.category_by_name ? <span className="nx-t3">, {e.category_by_name}</span> : null}{assess && !sample ? <button type="button" className="gh-link" style={{ marginLeft: 6 }} onClick={() => setChangeCat(true)}>Change</button> : null}</span>;
+    : <span>{e.category}{e.category_by_name ? <span className="nx-t3">, {e.category_by_name}</span> : null}{assess && !sample ? <button type="button" className="gh-link" style={{ marginLeft: 6 }} onClick={() => setChangeCat(true)}>Change</button> : null}</span>;
   const washControl = caps.has("record_exposure")
-    ? (sample ? <span>{WASHED[e.wound_washed] ?? e.wound_washed}</span> : <select aria-label="Wound washing" value={e.wound_washed} disabled={!!busy} onChange={(ev) => void setWashed(ev.target.value)} style={{ minHeight: 30, borderRadius: 6, border: 0, boxShadow: "inset 0 0 0 1px var(--line-2)", background: "var(--bg)", color: "var(--ink)", font: "inherit", padding: "0 6px" }}>{Object.entries(WASHED).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>)
+    ? (sample ? <span>{WASHED[e.wound_washed] ?? e.wound_washed}</span> : <select aria-label="Wound washing" value={e.wound_washed} disabled={!!busy} onChange={(ev) => void setWashed(ev.target.value)} style={{ minHeight: 30, maxWidth: "100%", borderRadius: 6, border: 0, boxShadow: "inset 0 0 0 1px var(--line-2)", background: "var(--bg)", color: "var(--ink)", font: "inherit", padding: "0 6px" }}>{Object.entries(WASHED).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>)
     : <span>{WASHED[e.wound_washed] ?? e.wound_washed}</span>;
 
   return (
@@ -117,7 +120,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
               clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <p className="nx-sub">Kaju prepared the course above. Confirm it to start the doses.</p>)
                 : <p className="nx-sub">No course prescribed. A clinician prescribes from this page.</p>
             ) : (
-              <ul className="gh-list" aria-label="Doses">{e.doses.map((d) => { const late = d.status === "due" && d.due_on < t; return (
+              <ul className="gh-list" aria-label="Doses">{doses.map((d) => { const late = d.status === "due" && d.due_on < t; return (
                 <li key={d.id}><div><b>Dose {d.dose_no}</b><small>{d.status === "given" ? `Given ${fmtDate(d.given_on)}${d.given_by_name ? ` by ${d.given_by_name}` : ""}${d.batch ? ` · batch ${d.batch}` : ""}` : d.status === "missed" ? `Missed · was due ${fmtDate(d.due_on)}` : d.status === "cancelled" ? `Cancelled · was due ${fmtDate(d.due_on)}` : `${late ? "Overdue since" : "Due"} ${fmtDate(d.due_on, { weekday: "short", day: "numeric", month: "short" })}`}</small></div>
                   <span className="gh-row-a"><Chip tone={d.status === "given" ? "ok" : d.status === "missed" || late ? "bad" : d.status === "cancelled" ? "plain" : d.due_on === t ? "accent" : "plain"}>{d.status === "given" ? "Given" : d.status === "missed" ? "Missed" : d.status === "cancelled" ? "Cancelled" : late ? "Overdue" : d.due_on === t ? "Today" : "Due"}</Chip>
                     {d.status === "due" && canDose && d.id === nextDue?.id ? (sample ? <TryLink sm className="gh-desk">Record</TryLink> : <button type="button" className="nx-btn is-sm gh-desk" onClick={() => setDose(d)}>Record</button>) : null}</span></li>); })}</ul>
@@ -208,6 +211,7 @@ function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure;
         {sample ? null : <button type="button" className="gh-link gh-kaju-x" data-tour="course-change" onClick={() => { setRegimen(PROTOCOL.regimen); setDates(planned); setChanging(true); }}>Change</button>}
       </div>
       <div className="gh-kaju-rx"><b>{PROTOCOL.label}</b><small>{PROTOCOL.source} · {planned.length} doses, the first today</small></div>
+      {e.source === "referral" ? <p className="nx-note" style={{ marginTop: 8 }}><Info size={13} aria-hidden /><span>This person came by referral. Doses may already have been given at the facility that sent them: ask, and change the dates before saving if so.</span></p> : null}
       <ol className="gh-sched" aria-label="Dose dates Kaju prepared">
         {planned.map((d, i) => <li key={d} className={i === 0 ? "is-now" : undefined}><span>Day {PROTOCOL.days[i]}</span><b><time dateTime={d}>{fmtDate(d, { day: "numeric", month: "short" })}</time></b><small>{i === 0 ? "Today" : fmtDate(d, { weekday: "short" })}</small></li>)}
       </ol>
@@ -246,11 +250,14 @@ function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure;
 export function DoseModal({ dose, onClose, onDone }: { dose: { dose_id: string; dose_no: number; due_on: string; label?: string }; onClose: () => void; onDone: () => void }) {
   const [status, setStatus] = useState<"given" | "missed">("given");
   const [on, setOn] = useState(indiaToday()), [batch, setBatch] = useState("");
+  /* A dose can only be missed once its day has passed or arrived; before then it is simply not due yet. */
+  const canMiss = dose.due_on <= indiaToday();
   const { busy, run } = useAct();
   const save = async () => { const r = await run("dose", () => call<{ remaining: number; completed: boolean }>("oh_record_dose", { p_dose: dose.dose_id, p_status: status, p_given_on: status === "given" ? on : null, p_batch: batch.trim() || null }), { ok: (x) => { const d = (x as { data?: { completed?: boolean } | null }).data; return status === "given" ? (d?.completed ? `Dose ${dose.dose_no} recorded. The course is complete.` : `Dose ${dose.dose_no} recorded.`) : `Dose ${dose.dose_no} recorded as missed.`; } }); if (r.ok) onDone(); };
   return <Modal title={`Record dose ${dose.dose_no}`} onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || (status === "given" && !on)} onClick={() => void save()}>Save</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>Due {fmtDate(dose.due_on, { day: "numeric", month: "long" })}{dose.label ? ` · ${dose.label}` : ""}. Recorded in your name.</p>
-    <Seg name="dose-status" label="Dose outcome" value={status} onChange={setStatus} options={[["given", "Given"], ["missed", "Missed"]]} />
+    {canMiss ? <Seg name="dose-status" label="Dose outcome" value={status} onChange={setStatus} options={[["given", "Given"], ["missed", "Missed"]]} />
+      : <p className="nx-note"><span>Not due until {fmtDate(dose.due_on, { day: "numeric", month: "long" })}, so it can be recorded as given but not as missed.</span></p>}
     {status === "given" ? <div className="nx-fields gh-fields"><Field label="Date given"><input type="date" value={on} max={indiaToday()} onChange={(ev) => setOn(ev.target.value)} /></Field><Field label="Vaccine batch"><input value={batch} maxLength={40} onChange={(ev) => setBatch(ev.target.value)} placeholder="As printed on the vial" /></Field></div>
       : <p className="nx-note"><span>A missed dose stays on the record. The clinician decides whether to add a new date or close the course.</span></p>}
   </Modal>;
@@ -260,7 +267,7 @@ function AddDose({ courseId, onClose, onDone }: { courseId: string; onClose: () 
   const [on, setOn] = useState("");
   const { busy, run } = useAct();
   const save = async () => { const r = await run("add", () => call("oh_add_dose", { p_course: courseId, p_due_on: on }), { ok: `Dose date added for ${fmtDate(on)}.` }); if (r.ok) onDone(); };
-  return <Modal title="Add a dose date" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || !on} onClick={() => void save()}>Add date</button></>}>
+  return <Modal title="Add a dose date" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || !on || on < indiaToday()} onClick={() => void save()}>Add date</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>For example after a missed dose. The date is yours; StrayPaw does not calculate one.</p>
     <Field label="Date" hint="Today or later. A course has at most 12 doses."><input type="date" value={on} min={indiaToday()} onChange={(ev) => setOn(ev.target.value)} autoFocus /></Field>
   </Modal>;

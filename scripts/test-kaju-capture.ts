@@ -437,6 +437,13 @@ async function main() {
     for (const q of notes.slice(0, 120)) { const r = await ask(q, h.ctx); for (const p of r.proposals) if (p.kind === "register_exposure") assert.equal(p.category, null, q); }
     for (const [said, cat] of [["category III", "III"], ["cat III", "III"], ["Category 2", "II"], ["category-I", "I"]] as const) assert.equal(parseExposure(`boy bitten by a dog today, ${said}`, NOW)?.category, cat, said);
     ok(`no stated category, no category: ${notes.length} generated bite notes (with “cat” the animal in many) never produced one`);
+    /* The record-a-bite page's own example ends "…brown stray near the bus stand": a note to prepare, not a question about
+       an incident ("where does it stand"). It used to fall into the incident route and get "needs an organisation workspace". */
+    for (const ex of ["dog bite on the left calf this morning, 34 F, OPD 4521, washed at home, brown stray near the bus stand", "boy bitten by a stray next to the school today, OPD 77"]) {
+      const r = await ask(ex, clinic().ctx);
+      assert.ok(r.proposals.some((p) => p.kind === "register_exposure"), `${ex} -> ${r.text}`);
+    }
+    ok("a bite note that mentions a bus stand or 'next to' is prepared as a record, not routed to the incident briefing");
 
     /* (b) nothing saved without a confirm call; (c) another organisation's or facility's records never appear */
     const phrasings = [

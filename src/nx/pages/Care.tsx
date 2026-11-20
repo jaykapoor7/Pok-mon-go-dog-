@@ -52,7 +52,7 @@ export function Facilities() {
   const vacc = data.filter((r) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available")).length;
   const canConfirm = !!place?.capabilities.includes("confirm_service");
   return <ListPage ws="health" crumb={["Healthcare", "Facilities"]} title="Facilities" sample={sample} eyebrow={sample ? "East Zone rabies programme" : prog!.name}
-    sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine in stock. <About>Call before sending someone: a status is only as fresh as its date.</About><GhMark /></> : "Reading the directory…"}
+    sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine available. <About>Call before sending someone: a status is only as fresh as its date.</About><GhMark /></> : "Reading the directory…"}
     action={sample || canConfirm ? <Link href="/health/facilities/ours" className="nx-btn is-quiet is-keep">Confirm our services</Link> : undefined}
     views={[{ id: "all", label: "All", test: () => true }, { id: "vac", label: "Vaccine available", test: (r: FacRow) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available") }, { id: "gap", label: "Gaps or unconfirmed", test: gap }]}
     columns={facCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.area} ${r.kind}`}
@@ -126,7 +126,7 @@ function useLab() {
       const n = (notices.data ?? []).filter((h) => h.sample_id === s.id);
       const sent = n[0];
       return {
-        id: s.id, code: s.code, species: word(s.species), type: word(s.sample_type), from: names.org(s.submitted_by) ?? "Submitting partner", area: s.place ?? names.area(s.area_id) ?? "—", collected: d(s.collected_on), status: word(s.status),
+        id: s.id, code: s.code, species: word(s.species), type: word(s.sample_type), from: names.org(s.submitted_by) ?? "Submitting partner", area: names.area(s.area_id) ?? s.place ?? "—", collected: d(s.collected_on), status: word(s.status),
         result: s.status === "resulted" && s.result ? word(s.result) : null, days: Math.floor((now - Date.parse(s.collected_on)) / 864e5),
         received: rec ? fmtDate(rec.at) : null, bench: rec ? Math.floor((now - Date.parse(rec.at)) / 864e5) : null, method: s.method, by: s.resulted_by_name, on: s.resulted_at ? fmtDate(s.resulted_at) : null,
         notice: sent ? `Sent to ${names.org(sent.to_org) ?? "a partner"}, ${NOTICE[sent.status] ?? HANDOFF[sent.status]?.label.toLowerCase() ?? sent.status}` : null, noticeTone: sent ? (sent.status === "done" ? "ok" : "accent") : s.result === "positive" ? "bad" : "plain",

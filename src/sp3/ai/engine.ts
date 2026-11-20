@@ -262,7 +262,9 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   }
   /* One bite incident in words ("what's happening with the Indiranagar bite? what's missing? what next?"): the
      partner's request, the animal on the register, what is missing and who does what. Animal side only. */
-  if (/\b(bites?|bitten|incident)\b/i.test(asked) && /\b(happening|status|update|brief\w*|missing|next|going on|where are we|summar\w*|stand)\b/i.test(asked) && !caseSummaryAsked(asked) && !/\b(this|current|selected) case\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b/i.test(asked)) {
+  /* "Where does it stand", not "the bus stand"; and a clinician's bite note ("…near the bus stand") is a record to
+     prepare, which the health route below does, not a question about an incident. */
+  if (/\b(bites?|bitten|incident)\b/i.test(asked) && /\b(happening|status|update|brief\w*|missing|next|going on|where are we|summar\w*)\b|\bwhere\b.*\bstands?\b/i.test(asked) && !(healthContext(ctx) && parseExposure(q)) && !caseSummaryAsked(asked) && !/\b(this|current|selected) case\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b/i.test(asked)) {
     if (!ctx.orgId) return done("That needs an organisation workspace that takes part in a programme. Sign in with your organisation to see its bite follow-ups.");
     const out = await call(acc, ctx, "incident_briefing", { place: incidentPlace(asked) ?? "" });
     if (out.ok === false) return done(out.summary);
