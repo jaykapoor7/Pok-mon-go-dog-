@@ -9,6 +9,7 @@ import type { AiReply, AiRequest } from "@/sp3/ai/types";
 import { logTurn, SURFACES, type Surface } from "@/sp3/ai/telemetry";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { caller as connCaller, capabilitiesFor } from "@/lib/connections/server";
+import { personName } from "@/lib/personName";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     const { data: who, error } = await db.auth.getUser(token);
     if (error || !who?.user) return NextResponse.json({ error: "Your session has expired. Sign in again." }, { status: 401 });
     if (!(await allowUserRequest(db, "ai"))) return NextResponse.json({ error: "Too many questions at once. Wait a minute and try again." }, { status: 429 });
-    userName = (who.user.user_metadata?.display_name as string | undefined) ?? who.user.email ?? null;
+    userName = personName(who.user.user_metadata, who.user.email, "") || null;
     userId=who.user.id;
     userVerified=!!(who.user.email_confirmed_at||who.user.phone_confirmed_at);
     try {const verified=await readAiScope(db,userId);orgId=verified.orgId;actorRole=verified.actorRole;scope=verified.scope;}

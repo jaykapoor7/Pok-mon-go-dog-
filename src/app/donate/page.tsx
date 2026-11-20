@@ -5,7 +5,7 @@ import { DocPage } from "@/sp4/site/kit";
 export const metadata = {
   title: "Donate & sponsor, StrayPaw",
   description:
-    "StrayPaw is free and open. Support street-dog care by donating, sponsoring a rescue, volunteering or spreading the word.",
+    "Reporting an animal and the public map are free, as is StrayPaw for community groups. Support street-dog care by donating, sponsoring a rescue, volunteering or spreading the word.",
 };
 
 // Optional: set NEXT_PUBLIC_DONATE_URL (a UPI/Razorpay/Ko-fi/etc link) to show a
@@ -16,9 +16,12 @@ export default function DonatePage() {
   return (
     <DocPage title="Support StrayPaw">
       <p>
-        StrayPaw is free, open and community-run, there&apos;s no paywall and no
-        ads. If it&apos;s helped you or a dog near you, here are a few ways to keep
-        it going and get more dogs cared for.
+        Reporting an animal and the public map are free for everyone, and
+        rescue, feeding and welfare groups use StrayPaw free, with no ads.
+        Funded programmes are priced per programme (see{" "}
+        <Link href="/pricing">Pricing</Link>). If it&apos;s helped you or a dog
+        near you, here are a few ways to keep it going and get more dogs cared
+        for.
       </p>
 
       {DONATE_URL && (

@@ -13,6 +13,7 @@ import { addTasks, announceChannel, askKaju, createChannel, markRead, setTaskDon
 import { recordHref, EMOJI, FILE_TYPES, deleteMessage, editMessage, fileLink, mentionsIn, sendMessage, uploadFile, useChannelMessages, useProgrammeChannels, useReactions, type FileRef, type Msg } from "../collab";
 import { GENERAL_PURPOSE, faceOf, isUnnamed, nameMissing, newConversation, personName, roleWord } from "../conversations";
 import { Sheet } from "../Phone";
+import { askKaju as askKajuPrivately } from "../data/ngo";
 import "../css/channel.css";
 import "../css/conversations.css";
 
@@ -27,6 +28,8 @@ type Person = { user_id: string; name: string };
 type View = {
   name: string; sample: boolean; sub?: string | null; msgs: VMsg[] | null; work: VTask[]; people: string[]; mentionable: Person[];
   accepted: (m: VMsg) => boolean; onSend: (text: string, parent?: string, files?: FileRef[]) => Promise<boolean> | boolean | void; onAccept: (m: VMsg) => void; onToggle?: (t: VTask) => void; note?: string | null;
+  /** Kaju's answer to a question asked with @Kaju, shown only to the person who asked (never posted to the channel). */
+  privately?: { q: string; text: string | null; error: string | null } | null; onClosePrivate?: () => void;
   dm?: string | null; kind?: string; canPost?: boolean; programme?: string | null; focus?: string | null;
   /** Who can read the conversation, said in one line under its name. */
   readers?: { icon: "users" | "lock" | "megaphone"; text: string } | null;
@@ -34,6 +37,9 @@ type View = {
   onEdit?: (m: VMsg, body: string) => Promise<boolean>; onDelete?: (m: VMsg) => Promise<boolean>; onUpload?: (f: File) => Promise<FileRef | null>;
 };
 
+/** What Kaju does in the channel itself, for everyone here: tasks from the messages, or a recap of them. Anything else
+    asked with @Kaju is a question, answered for the person who asked. A bare "@Kaju" is a recap. */
+const channelAsk = (q: string) => !q || /\b(tasks?|to-?dos?|actions?|recap|summar\w*|catch (?:me )?up|what did i miss|latest|what(?:'s| has| have)? (?:been )?(?:said|happen\w*|discussed)|this (?:channel|thread|conversation))\b/i.test(q);
 const clock = (iso?: string) => (iso ? new Date(iso) : new Date()).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }).toLowerCase();
 /** The day a message was posted, as a heading between days: Today, Yesterday, then the date. */
 const dayOf = (iso: string) => {
@@ -175,6 +181,14 @@ function ChannelView(v: View) {
               ) : v.sample ? <p className="nx-day"><span>Today</span></p> : null}
               <AnimatePresence initial={false}>{listed}</AnimatePresence>
               {v.note ? <p className="nx-foot" role="status">{v.note}</p> : null}
+              {v.privately ? <div className="nx-note ch-private" role="status">
+                <Sparkles size={13} aria-hidden /><div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ margin: 0 }}><b>Only you see this.</b> Kaju answers questions with what you may read, so it is not posted to #{v.name}.</p>
+                  <p style={{ margin: "6px 0 0", whiteSpace: "pre-wrap" }}>{v.privately.error ?? (v.privately.text === null ? "Kaju is reading…" : v.privately.text.replace(/\*\*/g, ""))}</p>
+                  <p style={{ margin: "6px 0 0" }}><Link className="nx-link" href={`/kaju?q=${encodeURIComponent(v.privately.q)}`}>Continue in Kaju</Link></p>
+                </div>
+                <button type="button" className="nx-ib" aria-label="Close Kaju's answer" onClick={v.onClosePrivate}><X size={14} /></button>
+              </div> : null}
               <div ref={end} />
             </div>
             <Composer v={v} placeholder={v.dm ? (nameMissing(v.dm) ? "Write a message" : `Message ${v.dm}`) : `Message #${v.name}`} />
@@ -270,6 +284,7 @@ function LiveChannel({ name }: { name: string }) {
   const ids = useMemo(() => (messages.rows ?? []).map((m) => m.id), [messages.rows]);
   const reactions = useReactions(ids);
   const [note, setNote] = useState<string | null>(null);
+  const [privately, setPrivately] = useState<View["privately"]>(null);
   const done = useMemo(() => new Set((tasks.rows ?? []).map((t) => t.source_message_id).filter(Boolean) as string[]), [tasks.rows]);
   const lead = ["admin", "lead", "coordinator"].includes(org!.role);
   /* Someone without a name cannot be told apart in a suggestion, so they are not offered there (as in Kaju's list of people). */
@@ -282,7 +297,18 @@ function LiveChannel({ name }: { name: string }) {
     const r = await sendMessage(ch.id, t, { authorName: userName, parentId: parent ?? null, mentions: mentionsIn(t, people.rows ?? []), files });
     if (r.error || !r.data) { toast({ text: `Not sent: ${r.error?.message ?? "try again"}. Your words are still in the box.`, tone: "bad" }); return false; }
     messages.setRows((rows) => (rows && !rows.some((x) => x.id === r.data!.id) ? [...rows, r.data!] : rows));
-    if (!parent && ch.kind !== "dm" && /@kaju\b/i.test(t)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
+    if (!parent && ch.kind !== "dm" && /@kaju\b/i.test(t)) {
+      /* Kaju in the channel turns the channel's own messages into tasks or a recap, by fixed rules, for everyone here.
+         Any other question ("what's overdue in Indiranagar?") is about records, which not everyone here may read, so
+         Kaju answers it for the person who asked, here, under their own access, and posts nothing. */
+      const q = t.replace(/@kaju\b[:,]?/gi, "").trim();
+      if (channelAsk(q)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
+      else {
+        setPrivately({ q, text: null, error: null });
+        const a = await askKajuPrivately(q, { path: `/channels/${ch.name}`, workspace: org!.workspace, channel: ch.name });
+        setPrivately({ q, text: a.data?.text ?? null, error: a.error ?? (a.data ? null : "Kaju could not answer. Nothing was changed.") });
+      }
+    }
     return true;
   };
   const onAccept = async (m: VMsg) => { if (!ch || !m.tasks) return; const r = await addTasks(org!.org_id, m.tasks, { messageId: m.id, channelId: ch.id }); if (r.error) setNote(`Tasks not created: ${r.error.message}`); else tasks.reload(); };
@@ -303,7 +329,7 @@ function LiveChannel({ name }: { name: string }) {
     canPost={ch?.kind === "announcement" ? lead : true}
     sub={dm ? (dmRow && dmRole && !isUnnamed(dmRow.other_name) ? roleWord(dmRole) : null) : ch?.topic || null}
     readers={readers}
-    msgs={ch ? msgs : null} work={work} people={names.length > 12 ? [...names.slice(0, 11), `and ${names.length - 11} more`] : names} mentionable={ch?.kind === "programme" ? [] : mentionable} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error}
+    msgs={ch ? msgs : null} work={work} people={names.length > 12 ? [...names.slice(0, 11), `and ${names.length - 11} more`] : names} mentionable={ch?.kind === "programme" ? [] : mentionable} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error} privately={privately} onClosePrivate={() => setPrivately(null)}
     reactions={{ counts, toggle: (id, e) => { void reactions.toggle(id, e, userId); } }}
     onEdit={async (m, body) => { const r = await editMessage(m.id, body); if (r.error) { toast({ text: r.error.message, tone: "bad" }); return false; } messages.reload(); return true; }}
     onDelete={async (m) => { const r = await deleteMessage(m.id); if (r.error) { toast({ text: r.error.message, tone: "bad" }); return false; } toast({ text: "Message deleted.", tone: "ok" }); messages.reload(); return true; }}

@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const MIG = join(here, "../../supabase/migrations");
 const MIGRATIONS = [
-  "20261102132030_field_vaccination_receipts.sql", "20261103004523_offline_intake_and_lifecycle.sql", "20261106090000_kaju_model_usage_ledger.sql",
+  "20261102132030_field_vaccination_receipts.sql", "20261103004523_offline_intake_and_lifecycle.sql", "20261103180000_removable_records.sql", "20261106090000_kaju_model_usage_ledger.sql",
   "20261110230441_one_health_v2_1_core.sql", "20261110230655_one_health_v2_2_workflows.sql", "20261110230829_one_health_v2_3_programme_setup_grants.sql",
   "20261111100000_one_health_v2_4_network_alerts.sql", "20261111120000_one_health_v2_5_record_audit_fix.sql", "20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
@@ -23,6 +23,7 @@ const MIGRATIONS = [
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
   "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql", "20261118110000_kaju_action_log.sql",
   "20261119090000_kaju_intelligence_layer.sql", "20261120120000_ngo_profile_leads_only.sql",
+  "20261120130000_one_health_counts_routing_doses.sql", "20261120131000_records_remove_animals_names.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -910,6 +911,135 @@ section("The public profile: changed by an organisation's leads and coordinators
   const stranger = (await as(R, "select public.ngo_update_profile(p_mission => 'x') as r"))[0].r;
   ok(stranger.ok === false && /Not a partner/.test(stranger.error), "someone in no organisation is refused");
   ok(!!(await refused(null, "set role anon; select public.ngo_update_profile(p_mission => 'x')")), "anonymous callers cannot run it");
+}
+
+section("Small counts cannot be worked out from a total");
+{
+  const cells = (c, by) => db.query("select public.oh_suppress_cells($1::jsonb, 5, 'area', 'n', $2) as r", [JSON.stringify(c), by]).then((x) => x.rows[0].r);
+  const one4 = await cells([{ area: "A", n: 21 }, { area: "B", n: 9 }, { area: "C", n: 6 }, { area: "D", n: 4 }], true);
+  ok(one4.find((x) => x.area === "D").n === "<5" && one4.find((x) => x.area === "C").n === "5+", "with one area under 5, the next-smallest is hidden too, as 5+");
+  ok(one4.map((x) => x.area).join() === "A,B,C,D" && one4.slice(0, 2).every((x) => typeof x.n === "number"), "shown areas come first by size, hidden ones after in name order");
+  const order = await cells([{ area: "Z", n: 30 }, { area: "Y", n: 5 }, { area: "B", n: 2 }], true);
+  ok(order.map((x) => x.area).join() === "Z,B,Y", "the hidden ones are in name order, so the order says nothing about their size");
+  const two = await cells([{ area: "A", n: 21 }, { area: "B", n: 3 }, { area: "C", n: 2 }], true);
+  ok(two.filter((x) => typeof x.n === "string").length === 2 && !two.some((x) => x.n === "5+"), "two small areas already hide each other; nothing more is hidden");
+  const none = await cells([{ area: "A", n: 21 }, { area: "B", n: 9 }], true);
+  ok(none.every((x) => typeof x.n === "number"), "nothing is hidden when no count is small");
+  const weeks = (await db.query("select public.oh_suppress_cells($1::jsonb, 5, 'week', 'n', false) as r", [JSON.stringify([{ week: "2026-11-02", n: 7 }, { week: "2026-11-09", n: 2 }, { week: "2026-11-16", n: 12 }])])).rows[0].r;
+  ok(weeks.map((x) => x.week).join() === "2026-11-02,2026-11-09,2026-11-16" && weeks[0].n === "5+" && weeks[1].n === "<5" && weeks[2].n === 12, "weeks keep their order; the smallest other week is hidden");
+
+  const area = async (name) => (await one("select a.id from oh_areas a where a.name = $1 and a.id in (select area_id from oh_programme_areas_all($2))", [name, prog.id]))?.id;
+  const city = (await one("select a.parent_id from oh_areas a where a.id = $1", [await area("Ward 12")])).parent_id;
+  await db.query("insert into oh_areas (parent_id, level, name, source) values ($1, 'ward', 'Ward 13', 'Test')", [city]);
+  const [w12, w13] = [await area("Ward 12"), await area("Ward 13")];
+  for (let i = 0; i < 6; i++) await db.query("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, area_id) values ($1, $2, current_date - 5, current_date - 5, 'bite', $3)", [fac, `SC-12-${i}`, w12]);
+  for (let i = 0; i < 3; i++) await db.query("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, area_id) values ($1, $2, current_date - 5, current_date - 5, 'bite', $3)", [fac, `SC-13-${i}`, w13]);
+  const ov = (await as(P, "select oh_programme_overview($1, 90) as r", [prog.id]))[0].r;
+  const by = ov.exposures.by_area;
+  ok(by.find((x) => x.area === "Ward 13")?.n === "<5", "on the overview, an area under 5 shows as <5");
+  ok(by.filter((x) => typeof x.n === "string").length !== 1, `and never alone, so total minus the others does not give it (${JSON.stringify(by)})`);
+  const shown = by.filter((x) => typeof x.n === "number").reduce((s, x) => s + x.n, 0);
+  ok(typeof ov.exposures.total !== "number" || ov.exposures.total - shown > 4 || by.filter((x) => typeof x.n === "string").length === 0, "what the total leaves over is more than any one hidden area could be");
+}
+
+section("The programme report counts training in the period chosen");
+{
+  await db.query("insert into oh_trainings (programme_id, provider_id, title, audience, held_on, participants) values ($1, $2, 'Bite first aid', 'healthcare', current_date - 20, 30), ($1, $2, 'Dog handling', 'animal_handlers', current_date - 200, 40)", [prog.id, coordOrg]);
+  const t30 = (await as(P, "select oh_programme_overview($1, 30) as r", [prog.id]))[0].r.training;
+  const t365 = (await as(P, "select oh_programme_overview($1, 365) as r", [prog.id]))[0].r.training;
+  ok(t30.sessions === 1 && Number(t30.participants) === 30 && !("animal_handlers" in t30.by_audience), "30 days counts the session held 20 days ago only");
+  ok(t365.sessions === 2 && Number(t365.participants) === 70, "12 months counts both");
+}
+
+section("Bite notices go to a facility that gives the vaccine");
+{
+  const w12 = (await one("select a.id from oh_areas a where a.name = 'Ward 12' and a.id in (select area_id from oh_programme_areas_all($1))", [prog.id])).id;
+  const near = (await one("insert into oh_organisations (kind, name, listed_publicly, area_id, lat, lng) values ('clinic', 'Ward 12 Wound-Washing Unit', true, $1, 18.5201, 73.8561) returning id", [w12])).id;
+  const far = (await one("insert into oh_organisations (kind, name, listed_publicly, lat, lng) values ('hospital', 'City Anti-Rabies Clinic', true, 18.5601, 73.8061) returning id")).id;
+  await db.query("insert into oh_participations (programme_id, organisation_id) values ($1, $2), ($1, $3)", [prog.id, near, far]);
+  await db.query("insert into oh_referrals (programme_id, from_org, to_org, service) values ($1, $2, $3, 'arv')", [prog.id, near, far]);
+  await db.query("insert into oh_service_status (organisation_id, service, status, verified_by, verified_by_name, verified_at, valid_until) values ($1, 'arv', 'available', $2, 'Priya', now() - interval '1 day', now() + interval '6 days')", [far, P]);
+  const send = async () => (await one("select oh_submit_bite_notice('pune-rabies', current_date, $1, 'Bus stand', 'dog', 'brown, red collar', null, false, 18.5202, 73.8562) as r", [w12])).r;
+  const a = await send();
+  ok(a.facility.name === "City Anti-Rabies Clinic" && a.facility.vaccine === "available", "the facility with the vaccine is chosen over a closer one that refers elsewhere, and the reply says it has it");
+  await db.query("insert into oh_service_status (organisation_id, service, status, verified_by, verified_by_name, verified_at, valid_until) values ($1, 'arv', 'unavailable', $2, 'Priya', now(), now() + interval '6 days')", [far, P]);
+  const b = await send();
+  ok(b.facility.name === "Ward 12 Wound-Washing Unit" && b.facility.vaccine === "refers", "when nobody has it, the nearest is chosen and the reply says it refers elsewhere");
+}
+
+section("A dose is not marked missed before its day");
+{
+  const ex3 = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind) values ($1, 'DOSE-RULE-1', ${indiaToday}, ${indiaToday}, 'bite') returning id`, [clinic])).id;
+  const course = (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Essen 4-dose IM', $2) returning id", [ex3, P])).id;
+  const today = (await one(`insert into health.pep_doses (course_id, dose_no, due_on) values ($1, 1, ${indiaToday}) returning id`, [course])).id;
+  const later = (await one(`insert into health.pep_doses (course_id, dose_no, due_on) values ($1, 2, ${indiaToday} + 3) returning id`, [course])).id;
+  const why = await refused(nurse, "select oh_record_dose($1, 'missed')", [later]);
+  ok(/before the day it is due/.test(why ?? ""), "a dose due in 3 days cannot be marked missed");
+  ok((await as(nurse, "select oh_record_dose($1, 'missed') as r", [today])).length === 1, "a dose due today can");
+  ok((await one("select status from health.pep_doses where id = $1", [later])).status === "due", "the later dose is still due");
+}
+
+section("Deleting a case takes its intake record; an animal is deleted once nothing else holds it");
+{
+  const dog = (await one("insert into dogs (ngo_id, name) values ($1, 'Intake test') returning id", [N1])).id;
+  ok((await one("select color from dogs where id = $1", [dog])).color === null, "a new animal has no colour until one is recorded");
+  const kase = (await one("insert into cases (ngo_id, dog_id, title) values ($1, $2, 'Animal intake') returning id", [N1, dog])).id;
+  await db.query("insert into animal_operation_events (ngo_id, case_id, dog_id, kind, occurred_at, actor_id, actor_name, payload) values ($1, $2, $3, 'intake', now(), $4, 'Bilal Member', '{}')", [N1, kase, dog, B]);
+  const vac = (await one("insert into animal_operation_events (ngo_id, case_id, dog_id, kind, occurred_at, actor_id, actor_name, payload) values ($1, $2, $3, 'vaccination', now(), $4, 'Bilal Member', '{}') returning id", [N1, kase, dog, B])).id;
+  const held = await refused(A, "select remove_record('case', $1, 'test')", [kase]);
+  ok(/1 field record/.test(held ?? ""), `a case with a vaccination record says what holds it (${held})`);
+  await db.query("delete from animal_operation_events where id = $1", [vac]);
+  const animalFirst = await refused(A, "select remove_record('animal', $1, 'test')", [dog]);
+  ok(/still has 1 case/.test(animalFirst ?? ""), `an animal with a case says so (${animalFirst})`);
+  const rid = (await as(A, "select remove_record('case', $1, 'opened by mistake') as r", [kase]))[0].r;
+  ok(!!rid && (await one("select count(*)::int n from animal_operation_events where case_id = $1", [kase])).n === 0, "the case is deleted with its intake record");
+  await as(A, "select restore_record($1)", [rid]);
+  ok((await one("select count(*)::int n from cases where id = $1", [kase])).n === 1 && (await one("select count(*)::int n from animal_operation_events where case_id = $1 and kind = 'intake'", [kase])).n === 1, "restoring brings both back");
+  await as(A, "select remove_record('case', $1, 'opened by mistake')", [kase]);
+  await db.query("insert into animal_timeline_events (dog_id, event_type, title) values ($1, 'registered', 'Registered')", [dog]);
+  ok(/Only a coordinator or admin/.test((await refused(B, "select remove_record('animal', $1, 'x')", [dog])) ?? ""), "a member cannot delete an animal someone else registered");
+  const ra = (await as(A, "select remove_record('animal', $1, 'duplicate') as r", [dog]))[0].r;
+  ok(!!ra && (await one("select count(*)::int n from dogs where id = $1", [dog])).n === 0, "with nothing else on it, the admin deletes the animal");
+  await as(A, "select restore_record($1)", [ra]);
+  ok((await one("select count(*)::int n from animal_timeline_events where dog_id = $1", [dog])).n === 1, "restoring brings the animal and its timeline back");
+  const mine = (await one("insert into dogs (ngo_id, name, created_by_id) values ($1, 'Mine', $2) returning id", [N1, B])).id;
+  ok(!!(await as(B, "select remove_record('animal', $1, 'added by mistake') as r", [mine]))[0].r, "the person who registered an animal can delete it within a day");
+  const nobodys = (await one("insert into cases (ngo_id, title) values ($1, 'No author recorded') returning id", [N1])).id;
+  ok(/Only a coordinator or admin/.test((await refused(B, "select remove_record('case', $1, 'x')", [nobodys])) ?? ""), "a member cannot delete a case with no author on it (that used to be allowed)");
+  const myCase = (await one("insert into cases (ngo_id, title, created_by_id) values ($1, 'Mine too', $2) returning id", [N1, B])).id;
+  ok(!!(await as(B, "select remove_record('case', $1, 'opened by mistake') as r", [myCase]))[0].r, "and a case they opened");
+}
+
+section("Records show people's names, not their sign-in email");
+{
+  const U = uuid();
+  await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, 'farah.s@example.invalid', '{\"name\":\"Farah Sheikh\"}')", [U]);
+  const kase = (await one("insert into cases (ngo_id, title) values ($1, 'Names') returning id", [N1])).id;
+  await db.query("insert into case_updates (case_id, actor_id, actor_name, note) values ($1, $2, 'farah.s@example.invalid', 'a'), ($1, $2, 'farah.s', 'b'), ($1, $2, 'Night shift', 'c')", [kase, U]);
+  await db.exec(readFileSync(join(MIG, "20261120131000_records_remove_animals_names.sql"), "utf8"));
+  const names = (await db.query("select note, actor_name from case_updates where case_id = $1 order by note", [kase])).rows.map((x) => x.actor_name);
+  ok(names[0] === "Farah Sheikh" && names[1] === "Farah Sheikh", "an email or email prefix becomes the person's name");
+  ok(names[2] === "Night shift", "any other text is left as written");
+}
+
+section("A referral carries the doses already given, and nothing else");
+{
+  const sender = (await one("insert into oh_organisations (kind, name, short_name) values ('hospital', 'Teaching Hospital Anti-Rabies Clinic', 'Teaching hospital') returning id")).id;
+  const receiver = (await one("insert into oh_organisations (kind, name) values ('clinic', 'UPHC Malleshwaram') returning id")).id;
+  const doc = uuid(), outsider = uuid();
+  await db.query("insert into auth.users (id) values ($1), ($2)", [doc, outsider]);
+  await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'clinician'), ($3, $4, 'clinician')", [receiver, doc, sender, outsider]);
+  const origin = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, patient_ref) values ($1, 'REF-H-1', ${indiaToday} - 2, ${indiaToday} - 2, 'bite', 'SECRET-REF') returning id`, [sender])).id;
+  const course = (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Intradermal, 2 sites', $2) returning id", [origin, P])).id;
+  await db.query(`insert into health.pep_doses (course_id, dose_no, due_on, status, given_on) values ($1, 1, ${indiaToday} - 2, 'given', ${indiaToday} - 2), ($1, 2, ${indiaToday} + 1, 'due', null)`, [course]);
+  const tr = (await one("insert into health.transfers (exposure_id, from_org, to_org, service) values ($1, $2, $3, 'arv') returning id", [origin, sender, receiver])).id;
+  const arrived = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, transfer_id, source) values ($1, 'REF-C-1', ${indiaToday} - 2, ${indiaToday}, 'bite', $2, 'referral') returning id`, [receiver, tr])).id;
+  const h = (await as(doc, "select oh_referral_history($1) as h", [arrived]))[0].h;
+  ok(h.from === "Teaching hospital" && h.regimen === "Intradermal, 2 sites" && h.given.length === 1 && h.given[0].dose === 1, "the receiving clinic sees where the person was referred from and the dose given there");
+  ok(!/SECRET-REF|REF-H-1/.test(JSON.stringify(h)), "and nothing that identifies the person at the other facility");
+  ok(await refused(outsider, "select oh_referral_history($1)", [arrived]) !== null, "staff elsewhere cannot read it");
+  const walkIn = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind) values ($1, 'REF-C-2', ${indiaToday}, ${indiaToday}, 'bite') returning id`, [receiver])).id;
+  ok((await as(doc, "select oh_referral_history($1) as h", [walkIn]))[0].h === null, "a walk-in has no referral history");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

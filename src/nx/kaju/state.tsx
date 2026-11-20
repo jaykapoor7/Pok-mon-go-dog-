@@ -7,6 +7,7 @@ import type { AiReply, Proposal } from "@/sp3/ai/types";
 import type { Intent, Plan } from "@/lib/kaju/registry";
 import { confirmVerified, type Saved } from "@/sp3/ai/execute";
 import { isAiReply } from "@/sp3/ai/validation";
+import { personName } from "@/lib/personName";
 
 /* One Kaju for the whole frame. The compact panel and the full page read and write the same conversation, so moving
    between them keeps what was asked, answered and proposed. The conversation lives for this browser tab only. */
@@ -216,7 +217,7 @@ export function KajuProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback(async (turnId: string, p: Proposal) => {
     const who = (await getSupabase()?.auth.getUser())?.data.user;
-    const r = await confirmVerified(p, { id: who?.id ?? "", name: (who?.user_metadata?.display_name as string | undefined) ?? who?.email ?? "member" });
+    const r = await confirmVerified(p, { id: who?.id ?? "", name: personName(who?.user_metadata, who?.email) });
     patch(turnId, (x) => ({ ...x, saved: { ...(x.saved ?? {}), [p.id]: r } }));
     return r;
   }, []);

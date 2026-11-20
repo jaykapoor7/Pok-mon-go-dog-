@@ -26,12 +26,20 @@ ok("the demo report: a bite, a street dog, Indiranagar, today, someone else, wan
 const rich = readBite("My son was bitten on the hand by a brown dog with no collar near the bus stop on 100 Feet Road, Indira Nagar, yesterday. It is bleeding a lot.", AREAS, now);
 assert.equal(rich.area?.name, "Indiranagar", "spacing and case do not matter");
 assert.equal(rich.on, "2026-11-15");
-assert.equal(rich.person, "child");
-assert.ok(rich.signs.includes("a bite on the hand") && rich.signs.includes("heavy bleeding") && rich.signs.includes("a child"), JSON.stringify(rich.signs));
+assert.equal(rich.person, "someone", "\"my son\" alone may be grown up, so it is not read as a young child");
+assert.ok(rich.signs.includes("a bite on the hand") && rich.signs.includes("heavy bleeding") && !rich.signs.includes("a child"), JSON.stringify(rich.signs));
 assert.ok(rich.looks && /brown dog/i.test(rich.looks) && /no collar/i.test(rich.looks), String(rich.looks));
 assert.ok(rich.place && /bus stop/.test(rich.place), String(rich.place));
 assert.deepEqual(rich.missing, ["danger"]);
 ok("a fuller report fills every field, keeps the person's own words for danger signs, and still asks the danger question");
+
+for (const [words, child] of [["My 6 year old son was bitten by a dog in Jayanagar today", true], ["my little daughter was bitten near the park in Jayanagar today", true],
+  ["A dog bit a small boy in Jayanagar today", true], ["My 34-year-old daughter was bitten in Jayanagar today", false], ["A dog bit my daughter in Jayanagar today", false]] as const) {
+  const r = readBite(words, AREAS, now);
+  assert.equal(r.person === "child", child, words);
+  assert.equal(r.signs.includes("a child"), child, words);
+}
+ok("a young child is read from a child word, \"little\" or \"young\", or an age under 15; a son or daughter alone is someone else");
 
 const bare = readBite("Something attacked me", AREAS, now);
 assert.equal(bare.kind, null);

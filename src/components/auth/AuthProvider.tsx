@@ -18,6 +18,7 @@ import { claimOrgMembership } from "@/lib/programme";
 import { storeRole, type Role } from "@/lib/roles";
 import { isRecordingDemo } from "@/lib/recording-demo";
 import { demoUser } from "@/lib/demo/abc-demo";
+import { personName } from "@/lib/personName";
 
 
 // ─────────────────────────────────────────────────────────────
@@ -56,10 +57,6 @@ const Ctx = createContext<AuthCtx>({
   openSignIn: () => {},
 });
 
-function nameFromEmail(email: string | undefined | null): string {
-  if (!email) return "Friend";
-  return email.split("@")[0].replace(/[._-]+/g, " ");
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supa = getSupabase();
@@ -139,9 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     /* display_name is what StrayPaw's own sign-up stores; name and full_name are what
        other providers (and the One Health demonstration accounts) carry. */
-    const meta = u.user_metadata ?? {};
-    const given = [meta.display_name, meta.full_name, meta.name].find((v): v is string => typeof v === "string" && v.trim().length > 0);
-    const display = given?.trim() || nameFromEmail(u.email);
+    const display = personName(u.user_metadata, u.email, "Friend");
     setUser({ id: u.id, name: display, email: u.email ?? null });
   }
 

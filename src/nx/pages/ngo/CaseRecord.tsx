@@ -91,11 +91,11 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   /* The story so far: updates and notes, care, and follow-ups, newest first, each with who recorded it and its delete. */
   const story: (TItem & { at: number })[] = [
     ...updates.map((u) => ({ id: `u${u.id}`, at: Date.parse(u.created_at), when: dayTime(u.created_at), who: u.actor_name?.includes("@") ? u.actor_name.split("@")[0] : u.actor_name, tone: u.type === "note" ? undefined : ("accent" as const),
-      title: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : words(u.type)), action: <DeleteRecord kind="update" id={u.id} what={u.type === "note" ? "this note" : "this update"} onDone={read} /> })),
+      title: careNote(u.note) || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : words(u.type)), action: <DeleteRecord kind="update" id={u.id} what={u.type === "note" ? "this note" : "this update"} onDone={read} /> })),
     ...medical.map((m) => ({ id: `m${m.id}`, at: Date.parse(m.event_date), when: day(m.event_date), who: m.performed_by, tone: "ok" as const,
       title: words(m.kind), body: careNote(m.notes) || undefined, action: <DeleteRecord kind="care" id={m.id} what="this care record" onDone={read} /> })),
     ...followups.map((f) => ({ id: `f${f.id}`, at: Date.parse(f.completed_at ?? f.due_at), when: day(f.completed_at ?? f.due_at), tone: f.status === "done" ? ("ok" as const) : f.status === "missed" ? ("warn" as const) : undefined,
-      title: `Follow-up · ${words(f.kind, "recheck")} · ${f.status === "upcoming" || f.status === "postponed" ? `due ${day(f.due_at)}` : words(f.status).toLowerCase()}`, body: f.note ?? undefined, action: <DeleteRecord kind="followup" id={f.id} what="this follow-up" onDone={read} /> })),
+      title: `Follow-up${/^follow[-_ ]?up$/i.test(f.kind ?? "") ? "" : ` · ${words(f.kind, "recheck")}`} · ${f.status === "upcoming" || f.status === "postponed" ? `due ${day(f.due_at)}` : words(f.status).toLowerCase()}`, body: f.note ?? undefined, action: <DeleteRecord kind="followup" id={f.id} what="this follow-up" onDone={read} /> })),
   ].sort((a, b) => b.at - a.at);
   const tabs: [Tab, number | undefined][] = [["Overview", undefined], ["History", story.length], ["Care and movements", undefined], ["ABC evidence", undefined], ["Related", neighbours.length + sameAnimal.length || undefined], ["Discussion", undefined]];
 

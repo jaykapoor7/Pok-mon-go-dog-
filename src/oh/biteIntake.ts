@@ -49,8 +49,20 @@ const SIGNS: [RegExp, string][] = [
   [/\b(head|scalp)\b/i, "a bite on the head"],
   [/\bneck\b/i, "a bite on the neck"],
   [/\b(hand|hands|finger|fingers|palm|wrist)\b/i, "a bite on the hand"],
-  [/\b(child|kid|boy|girl|son|daughter|baby|toddler|student)\b/i, "a child"],
 ];
+/* A young child, on the danger list. "My son" or "my daughter" alone is not one (they may be grown up), nor is
+   "student"; a child word, "little/young/baby son", or an age under 15 is. */
+const YOUNG = /\b(child|children|kid|kids|boy|girl|baby|toddler|infant)\b|\b(little|small|young|baby|infant)\s+(son|daughter|brother|sister|one)\b/i;
+const AGE = /\b(\d{1,2})[- ]?(?:years?|yrs?)[- ]?old\b/i;
+const youngChild = (t: string) => YOUNG.test(t) || Number(t.match(AGE)?.[1] ?? 99) < 15;
+
+/** What the animal looked like, in the person's words: colour, size, collar or marks said with the animal ("brown
+    stray", "black dog with a red collar", "no collar"). Shared with Kaju's bite capture at a facility. */
+export function readLooks(text: string): string | null {
+  const looksM = text.match(/\b((?:(?:black|brown|white|tan|grey|gray|golden|ginger|spotted|small|big|large|thin|old|young|limping|injured|aggressive)[\s,]+(?:and\s+)?){1,4})(?:(?:stray|street)(?:\s+(?:dog|puppy|cat|monkey))?|dog|puppy|cat|monkey)\b([^.;,]{0,40}?\b(?:collar|marks?|tail|ear|patch)\b)?/i);
+  const collar = text.match(/\b(no collar|with a (?:red|blue|black|brown|green)?\s*collar|wearing a collar|ear[- ]?notch\w*)\b/i);
+  return [looksM?.[0]?.trim(), collar && !looksM?.[0]?.includes(collar[0]) ? collar[0] : null].filter(Boolean).join(", ") || null;
+}
 
 export function readBite(raw: string, areas: BiteArea[], now = new Date()): BiteDraft {
   const text = raw.replace(/\s+/g, " ").trim();
@@ -93,16 +105,14 @@ export function readBite(raw: string, areas: BiteArea[], now = new Date()): Bite
     on = /day/.test(ago[2]) ? minusDays(today, Math.min(30, n)) : today; when = ago[0];
   }
 
-  const person: BiteDraft["person"] = /\b(child|kid|boy|girl|son|daughter|baby|toddler)\b/.test(t) ? "child"
+  const person: BiteDraft["person"] = youngChild(t) ? "child"
     : /\b(i was|i got|bit me|bitten me|my (?:hand|leg|arm|finger|foot)|i have been)\b/.test(t) ? "self"
-      : /\b(a person|someone|somebody|a man|a woman|my (?:mother|father|wife|husband|friend|neighbou?r|brother|sister)|a resident|he|she)\b/.test(t) ? "someone" : null;
+      : /\b(a person|someone|somebody|a man|a woman|my (?:mother|father|wife|husband|friend|neighbou?r|brother|sister|son|daughter)|a resident|he|she)\b/.test(t) ? "someone" : null;
   const wantsCare = /\b(need|needs|needed|want|wants|get|getting|looking for)\b[^.]{0,30}\b(medical|doctor|hospital|treatment|help|assistance|vaccine|injection)\b/.test(t);
-  const signs = SIGNS.filter(([re]) => re.test(text)).map(([, s]) => s);
+  const signs = [...SIGNS.filter(([re]) => re.test(text)).map(([, s]) => s), ...(youngChild(t) ? ["a child"] : [])];
 
   /* What the animal looked like: colour, size, collar, marks named with the animal. */
-  const looksM = text.match(/\b((?:(?:black|brown|white|tan|grey|gray|golden|ginger|spotted|small|big|large|thin|old|young|limping|injured|aggressive)[\s,]+(?:and\s+)?){1,4})(?:stray\s+|street\s+)?(?:dog|puppy|cat|monkey)\b([^.;]{0,40}\b(?:collar|marks?|tail|ear|patch)\b[^.;]*)?/i);
-  const collar = text.match(/\b(no collar|with a (?:red|blue|black|brown|green)?\s*collar|wearing a collar|ear[- ]?notch\w*)\b/i);
-  const looks = [looksM?.[0]?.trim(), collar && !looksM?.[0]?.includes(collar[0]) ? collar[0] : null].filter(Boolean).join(", ") || null;
+  const looks = readLooks(text);
 
   const missing: BiteField[] = [];
   if (!on) missing.push("when");

@@ -145,7 +145,7 @@ export async function setFollowup(id: string, status: "upcoming" | "done" | "mis
 
 /* ── Delete with a reason, and restore ───────────────────────────── */
 
-export type RemovableKind = "case" | "update" | "timeline" | "care" | "followup" | "evidence";
+export type RemovableKind = "case" | "update" | "timeline" | "care" | "followup" | "evidence" | "animal";
 /** The record moves to removed records (kept 30 days, audited); the database decides who may delete what. */
 export async function removeRecord(kind: RemovableKind, id: string, reason: string): Promise<Res<string>> {
   const r = await rpc<string>("remove_record", { p_kind: kind, p_id: id, p_reason: reason.trim() || null });

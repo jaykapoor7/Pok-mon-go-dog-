@@ -206,7 +206,7 @@ export function WeekBars({ weeks }: { weeks: { week: string; n: Count }[] }) {
   return (
     <svg className="nx-vbars" viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={`Exposures per week: ${weeks.map((w) => `${w.week} ${num(w.n)}`).join(", ")}`}>
       <line className="g" x1={0} x2={W} y1={H} y2={H} />
-      {weeks.map((w, i) => { const sup = w.n === "<5"; const h = sup ? 6 : (val(w.n) / max) * H; const label = /^\d{4}-/.test(w.week) ? fmtDate(w.week) : w.week; const x = i * (bw + gap); return (
+      {weeks.map((w, i) => { const sup = typeof w.n === "string"; const h = sup ? 6 : (val(w.n) / max) * H; const label = /^\d{4}-/.test(w.week) ? fmtDate(w.week) : w.week; const x = i * (bw + gap); return (
         <g key={w.week}><rect className={sup ? "is-sup" : ""} x={x} y={H - h} width={bw} height={Math.max(h, 1)} rx={2}><title>{`Week of ${label}: ${num(w.n)}`}</title></rect>
           {sup && bw >= 18 ? <text className="sup" x={x + bw / 2} y={H - 10} textAnchor="middle">&lt;5</text> : null}
           {i % Math.ceil(weeks.length / 6) === 0 ? <text x={x} y={H + 13}>{label}</text> : null}</g>); })}
@@ -259,11 +259,11 @@ export function Surveillance() {
           <section className="nx-sec" aria-labelledby="sv-w">
             <div className="nx-sec-h"><h2 id="sv-w">Exposures per week</h2></div>
             {weeks.length ? <WeekBars weeks={weeks} /> : <p className="nx-sub">{o.loading ? "Reading…" : "No exposures recorded in this period."}</p>}
-            <p className="nx-foot">Weeks with fewer than 5 show as &lt;5, without a bar height, so that no one can be identified. No patient details reach this page.</p>
+            <p className="nx-foot">Weeks with fewer than 5 show as &lt;5, without a bar height, so that no one can be identified. When only one week would be hidden, the next-smallest shows as 5+, so the total cannot give it away. No patient details reach this page.</p>
           </section>
           <section className="nx-sec" aria-labelledby="sv-a" style={{ marginTop: 0 }}>
             <div className="nx-sec-h"><h2 id="sv-a">By area</h2></div>
-            <div className="nx-bars">{areas.map((a) => <div key={a.area} className="nx-barrow" style={{ gridTemplateColumns: "96px minmax(0, 1fr) 40px" }}><span className="nx-t2">{a.area}</span><span className="nx-bar-t"><span style={{ width: a.n === "<5" ? "6%" : `${(val(a.n) / maxArea) * 100}%`, opacity: a.n === "<5" ? .45 : 1 }} /></span><em>{num(a.n)}</em></div>)}</div>
+            <div className="nx-bars">{areas.map((a) => <div key={a.area} className="nx-barrow" style={{ gridTemplateColumns: "96px minmax(0, 1fr) 40px" }}><span className="nx-t2">{a.area}</span><span className="nx-bar-t"><span style={{ width: typeof a.n === "string" ? "6%" : `${(val(a.n) / maxArea) * 100}%`, opacity: typeof a.n === "string" ? .45 : 1 }} /></span><em>{num(a.n)}</em></div>)}</div>
             {s?.positive_areas?.length ? <p className="nx-note" style={{ marginTop: 12 }}><MapPin size={13} /><span>Positive results in {s.positive_areas.join(", ")}. {s.waiting} {s.waiting === 1 ? "sample waits" : "samples wait"} for a result{s.median_days_to_result !== null ? `; results take ${s.median_days_to_result} days at the median` : ""}.</span></p> : null}
           </section>
         </div>

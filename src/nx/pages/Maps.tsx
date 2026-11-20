@@ -67,7 +67,7 @@ export function Maps() {
   const maxExp = Math.max(5, ...areas.map((a) => (typeof a.exposures === "number" ? a.exposures : 0)));
   const cov = (a: AreaV) => (a.estimate && a.estimate > 0 && a.vaccinated !== null ? a.vaccinated / a.estimate : null);
   const fill = (a: AreaV): { f: string; o: number; hatch?: boolean } => {
-    if (layer === "exposures") return a.exposures === "<5" ? { f: "url(#nx-hatch)", o: 1, hatch: true } : typeof a.exposures === "number" && a.exposures > 0 ? { f: "var(--accent)", o: 0.15 + 0.75 * (a.exposures / maxExp) } : { f: "var(--hover)", o: 1 };
+    if (layer === "exposures") return typeof a.exposures === "string" ? { f: "url(#nx-hatch)", o: 1, hatch: true } : typeof a.exposures === "number" && a.exposures > 0 ? { f: "var(--accent)", o: 0.15 + 0.75 * (a.exposures / maxExp) } : { f: "var(--hover)", o: 1 };
     if (layer === "coverage") { const c = cov(a); return c === null ? { f: "url(#nx-hatch)", o: 1, hatch: true } : { f: c >= target ? "var(--ok)" : "var(--warn)", o: 0.25 + 0.65 * Math.min(1, c / target) }; }
     return a.positive ? { f: "var(--bad)", o: 0.7 } : { f: "var(--hover)", o: 1 };
   };
@@ -85,7 +85,7 @@ export function Maps() {
   const centre = (g: Geo) => { const r = g.coordinates[0].slice(0, -1); const c = r.reduce((m, p) => [m[0] + p[0] / r.length, m[1] + p[1] / r.length], [0, 0]); return P(c); };
 
   const rows = [...areas].sort((a, b) => layer === "coverage" ? (cov(a) ?? 2) - (cov(b) ?? 2) : layer === "positives" ? Number(b.positive) - Number(a.positive) : (typeof b.exposures === "number" ? b.exposures : 2.5) - (typeof a.exposures === "number" ? a.exposures : 2.5));
-  const suppressed = areas.filter((a) => a.exposures === "<5").length;
+  const suppressed = areas.filter((a) => typeof a.exposures === "string").length;
   return (
     <Shell ws="research" crumb={["Research", "Maps & Analysis"]}>
       <div className="nx-page" style={{ maxWidth: 1180 }}>

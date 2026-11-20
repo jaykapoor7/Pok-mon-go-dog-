@@ -28,7 +28,8 @@ import { workId } from "./prepare";
 
 export type Sink = { citations: Citation[]; tools: ToolRun[]; proposals: Proposal[] };
 export type Said = { text: string; suggestions?: string[] };
-export type Facility = { id: string; name: string; role: string; caps: Set<string> };
+/** name is the short name people use in the workspace; fullName is the facility's name in full, for records. */
+export type Facility = { id: string; name: string; fullName?: string; role: string; caps: Set<string> };
 
 type DueDose = { dose_id: string; dose_no: number; doses_total: number; due_on: string; exposure_id: string; code: string; patient_ref: string | null; age_band: string; regimen: string; phone: string | null; last_reminder: { at: string; outcome: string } | null };
 type Completed = { course_id: string; exposure_id: string; code: string; patient_ref: string | null; completed_at: string; phone: string | null; told: boolean };
@@ -58,7 +59,7 @@ export async function myFacilities(db: Pick<SupabaseClient, "rpc">): Promise<Fac
   if (r.error) return null;
   return (Array.isArray(r.data) ? r.data : [])
     .filter((p: { kind?: string }) => p && (p.kind === "hospital" || p.kind === "clinic"))
-    .map((p: { organisation_id: string; name: string; short_name: string | null; role: string; capabilities?: string[] | null }) => ({ id: p.organisation_id, name: p.short_name || p.name, role: p.role, caps: new Set(p.capabilities ?? []) }));
+    .map((p: { organisation_id: string; name: string; short_name: string | null; role: string; capabilities?: string[] | null }) => ({ id: p.organisation_id, name: p.short_name || p.name, fullName: p.name, role: p.role, caps: new Set(p.capabilities ?? []) }));
 }
 
 async function read<T>(ctx: ToolCtx, sink: Sink, f: Facility, fn: string, args: Record<string, unknown>, label: string, count: (d: T) => number): Promise<T | null> {
@@ -202,9 +203,9 @@ export async function prepareExposure(note: ExposureNote, said: string, ctx: Too
   }
   const p: ExposureProposal = {
     id: workId("kx", f.id, ctx.userId ?? "", said.replace(/\s+/g, " ").trim().toLowerCase(), today), kind: "register_exposure", why: "",
-    facilityId: f.id, facilityName: f.name, exposureOn: note.date.day, exposureTime: note.time, exposureKind: note.kind, site: note.site,
+    facilityId: f.id, facilityName: f.fullName ?? f.name, exposureOn: note.date.day, exposureTime: note.time, exposureKind: note.kind, site: note.site,
     category, patientRef: note.patientRef, ageBand: note.ageBand as AgeBand | null, ageText: note.ageText, sex: note.sex, woundWashed: note.washed,
-    species: note.species, ownership: note.ownership, animalPlace: note.place, contactPhone: note.consent ? note.phone : null, reminderConsent: note.consent && !!note.phone,
+    species: note.species, ownership: note.ownership, animalPlace: note.place, animalDescription: note.animal, contactPhone: note.consent ? note.phone : null, reminderConsent: note.consent && !!note.phone,
     areaId: area?.id ?? null, areaName: area?.name ?? null,
   };
   const missing = [
@@ -232,5 +233,5 @@ export async function prepareExposure(note: ExposureNote, said: string, ctx: Too
     p.category ? `category **${p.category}**` : "",
     p.patientRef ? `register number ${p.patientRef}` : "",
   ].filter(Boolean).join("; ");
-  return { text: `I prepared a bite record for **${f.name}**: ${facts}.${missing.length ? ` Not in your note: ${missing.join(", ")}; I left ${missing.length === 1 ? "it" : "them"} empty.` : ""} Check it and press Confirm; it is saved in your name. Prescribing the course stays with the clinician on the record.` };
+  return { text: `I prepared a bite record for **${f.fullName ?? f.name}**: ${facts}.${missing.length ? ` Not in your note: ${missing.join(", ")}; I left ${missing.length === 1 ? "it" : "them"} empty.` : ""} Check it and press Confirm; it is saved in your name. Prescribing the course stays with the clinician on the record.` };
 }

@@ -111,7 +111,7 @@ function CaseDrawer({ id, animalName, role, actor, members, onListChanged }: { i
   if (!file) return <p className="nx-sub">This case is not in your organisation&apos;s records. It may have been removed.</p>;
   const { c, reg, updates, medical, animal } = file;
   const history = [
-    ...updates.map((u) => ({ id: u.id, at: u.created_at, t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
+    ...updates.map((u) => ({ id: u.id, at: u.created_at, t: careNote(u.note) || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
     ...medical.map((m) => ({ id: m.id, at: m.event_date, t: `${m.kind.replace(/_/g, " ")}${careNote(m.notes) ? `: ${careNote(m.notes)}` : ""}`, who: m.performed_by })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 4);
   return (

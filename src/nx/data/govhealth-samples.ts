@@ -68,7 +68,7 @@ export const SAMPLE_OVERVIEW: Overview = {
   pep: { courses: 49, completed: 31, lost: 6, active: 12, completion_rate: 0.84, doses_overdue: 4 },
   samples: { total: 6, waiting: 2, positive: 1, negative: 3, median_days_to_result: 4, positive_areas: ["Ward 08"] },
   handoffs: { open: 6, overdue: 2, done: 14, median_days_to_close: 3.5, service_gaps: 1 },
-  services: { facilities: 4, confirmed: 3, stale: 1, arv_unavailable: 1, arv_limited: 0, never_confirmed: 0 },
+  services: { facilities: 4, confirmed: 3, stale: 1, arv_unavailable: 1, arv_limited: 0, never_confirmed: 0, arv_unconfirmed: 1 },
   vaccination: [
     { area: "Ward 01", area_id: "a1", registered: 412, vaccinated: 318, estimate: { dogs: 430, method: "Street survey, mark and resight", source: "Kind Hour field survey", on: date(70) } },
     { area: "Ward 05", area_id: "a5", registered: 280, vaccinated: 151, estimate: { dogs: 360, method: "Street survey", source: "Street Care Trust", on: date(95) } },

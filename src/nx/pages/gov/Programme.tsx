@@ -100,7 +100,7 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
           {mods.includes("bite_care") && d.exposures ? fig(showCount(d.exposures.category_iii), "Category III") : null}
           {mods.includes("bite_care") && d.pep ? fig(d.pep.completion_rate === null ? "—" : pct(d.pep.completion_rate), "Courses completed") : null}
           {mods.includes("laboratory") ? fig(d.samples.positive, "Laboratory-confirmed", "Work") : null}
-          {mods.includes("services") ? fig(d.services.arv_unavailable, "Facilities without vaccine", "Network") : null}
+          {mods.includes("services") ? fig(<>{d.services.arv_unavailable}{d.services.arv_unconfirmed ? <em>{` + ${d.services.arv_unconfirmed} not confirmed`}</em> : null}</>, "Facilities without vaccine", "Network") : null}
         </div>)}
       {!sample && d && (mods.includes("bite_care") || mods.includes("laboratory")) ? <Block title="Where to act" note="Bites, confirmed cases and dog vaccination, by area"><AreaIntel programme={p.id} slug={p.slug} d={d} /></Block> : null}
       <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)", marginTop: 24, gap: 28 }}>

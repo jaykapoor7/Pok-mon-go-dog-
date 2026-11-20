@@ -450,6 +450,10 @@ async function main() {
       assert.ok(r.proposals.some((p) => p.kind === "register_exposure"), `${ex} -> ${r.text}`);
     }
     ok("a bite note that mentions a bus stand or 'next to' is prepared as a record, not routed to the incident briefing");
+    const looked = (await ask("dog bite on the left calf this morning, 34 F, OPD 4521, washed at home, brown stray near the bus stand", clinic().ctx)).proposals.find((p) => p.kind === "register_exposure") as { animalDescription?: string | null; facilityName: string } | undefined;
+    assert.equal(looked?.animalDescription, "brown stray", JSON.stringify(looked));
+    assert.equal(parseExposure("boy bitten by a black dog with a red collar today", NOW)?.animal, "black dog with a red collar");
+    ok("what the animal looked like is carried into the prepared record");
 
     /* (b) nothing saved without a confirm call; (c) another organisation's or facility's records never appear */
     const phrasings = [

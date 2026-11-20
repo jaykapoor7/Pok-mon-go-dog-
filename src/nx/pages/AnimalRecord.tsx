@@ -103,6 +103,9 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           {liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn is-quiet is-sm">Open its case</Link> : null}
           <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />{liveCase ? "Open another case" : "Start a case"}</Link>
           <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
+          {/* The database deletes an animal only when nothing else is on it (cases, care, vaccination, field records…)
+              and says what is in the way otherwise. */}
+          <DeleteRecord kind="animal" id={d.id} what="this animal" label="Delete" onDone={() => router.push("/ngo/animals")} onRestored={() => router.push(`/ngo/animals/${d.id}`)} />
         </>} />
       <div className="kc-line"><KajuCapture compact idBase="animal-kaju" label="Tell Kaju" context={{ path: `/ngo/animals/${d.id}`, workspace: "ngo", dogId: d.id, title: label.line }}
         placeholder="For example: dewormed today at the shelter"

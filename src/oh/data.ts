@@ -9,7 +9,9 @@ import { getSupabase } from "@/lib/supabase";
 
 export type Kind = "state" | "coordinator" | "municipal" | "hospital" | "clinic" | "laboratory" | "ngo" | "research" | "training";
 export type Role = "lead" | "coordinator" | "clinician" | "nurse" | "records" | "lab_scientist" | "analyst" | "field" | "trainer";
-export type Count = number | "<5" | null;
+/** "<5": under the programme's threshold. "5+": five or more, hidden as well because it is the only other way to
+    work out a lone "<5" from the total (the database hides the next-smallest cell then). */
+export type Count = number | "<5" | "5+" | null;
 export type ProgrammeRef = { id: string; slug: string; name: string; illustrative: boolean };
 
 /** One organisation a person works in, as oh_my_today returns it. */
@@ -55,7 +57,9 @@ export type Overview = {
   pep: { courses: Count; completed: Count; lost: Count; active: Count; completion_rate: number | null; doses_overdue: Count } | null;
   samples: { total: number; waiting: number; positive: number; negative: number; median_days_to_result: number | null; positive_areas: string[] };
   handoffs: { open: number; overdue: number; done: number; median_days_to_close: number | null; service_gaps: number };
-  services: { facilities: number; confirmed: number; stale: number; arv_unavailable: number; arv_limited: number; never_confirmed: number };
+  services: { facilities: number; confirmed: number; stale: number; arv_unavailable: number; arv_limited: number; never_confirmed: number;
+    /** Facilities with no current vaccine confirmation (never confirmed, or it expired). Older databases leave it out. */
+    arv_unconfirmed?: number };
   vaccination: { area: string; area_id: string; registered: number; vaccinated: number; estimate: { dogs: number; method: string; source: string; on: string } | null }[];
   training: { sessions: number; participants: number; by_audience: Record<string, number> };
 };
@@ -177,6 +181,6 @@ export function daysFrom(d: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 export function relDay(d: string): string { const n = daysFrom(d); return n === 0 ? "Today" : n === -1 ? "Yesterday" : n === 1 ? "Tomorrow" : n < 0 ? `${-n} days ago` : `In ${n} days`; }
-export const showCount = (c: Count | undefined) => (c === null || c === undefined ? "Not read" : c === "<5" ? "Fewer than 5" : c.toLocaleString("en-IN"));
+export const showCount = (c: Count | undefined) => (c === null || c === undefined ? "Not read" : c === "<5" ? "Fewer than 5" : c === "5+" ? "5 or more" : c.toLocaleString("en-IN"));
 export const num = (c: Count | undefined) => (typeof c === "number" ? c : 0);
 export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString("en-IN")} ${n === 1 ? one : many}`;

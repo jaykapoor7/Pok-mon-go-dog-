@@ -23,7 +23,7 @@ import "../../css/areaintel.css";
 
 type Area = {
   id: string; name: string; centre: [number, number] | null; ring: [number, number][] | null;
-  bites: number | "<5" | null; positive: boolean; coverage: number | null; registered: number; vaccinated: number;
+  bites: number | "<5" | "5+" | null; positive: boolean; coverage: number | null; registered: number; vaccinated: number;
   score: number; reasons: { tone: "flame" | "amber" | "blue"; text: string }[];
 };
 
@@ -51,7 +51,7 @@ export function useAreas(programmeId: string, d: Overview): { areas: Area[]; map
     const areas: Area[] = [...names].map((name) => {
       const a = known.get(name);
       const ring = a ? ringOf(a.geometry) : null;
-      const bites = byArea.has(name) ? (byArea.get(name) as number | "<5") : null;
+      const bites = byArea.has(name) ? (byArea.get(name) as number | "<5" | "5+") : null;
       const v = a ? vacc.get(a.id) : undefined;
       const coverage = v?.estimate?.dogs ? v.vaccinated / v.estimate.dogs : null;
       const reasons: Area["reasons"] = [];
@@ -120,7 +120,7 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
          on a slow connection the areas and counts still show while the streets load. */
       const draw = () => {
         if (map.getSource("areas")) return;
-        const feature = (a: Area) => ({ type: "Feature" as const, properties: { id: a.id, name: a.name, cov: a.coverage === null ? -1 : Math.min(1, a.coverage / target), n: typeof a.bites === "number" ? a.bites : a.bites === "<5" ? 2 : 0, hidden: a.bites === "<5" ? 1 : 0, pos: a.positive ? 1 : 0 }, geometry: { type: "Polygon" as const, coordinates: [a.ring!] } });
+        const feature = (a: Area) => ({ type: "Feature" as const, properties: { id: a.id, name: a.name, cov: a.coverage === null ? -1 : Math.min(1, a.coverage / target), n: typeof a.bites === "number" ? a.bites : a.bites === "<5" ? 2 : a.bites === "5+" ? 5 : 0, hidden: typeof a.bites === "string" ? 1 : 0, pos: a.positive ? 1 : 0 }, geometry: { type: "Polygon" as const, coordinates: [a.ring!] } });
         map.addSource("areas", { type: "geojson", data: { type: "FeatureCollection", features: drawn.map(feature) } });
         map.addSource("dots", { type: "geojson", data: { type: "FeatureCollection", features: drawn.map((a) => ({ ...feature(a), geometry: { type: "Point" as const, coordinates: a.centre! } })) } });
         /* coverage: no estimate is grey; below target runs from pale amber to green at the target */

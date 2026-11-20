@@ -24,7 +24,21 @@ import { Ears, checkMic, digits, hearSarvam, hush, listen, lockVoice, problemTex
 const PinPicker = dynamic(() => import("./PinPicker").then((m) => m.PinPicker), { ssr: false, loading: () => <div className="kp"><p className="kb-wait">Opening the map…</p></div> });
 
 type Facility = { id: string; name: string; kind: string; area: string | null; address: string | null; phone: string | null; hours: string | null; lat: number | null; lng: number | null; services: { service: string; status: string; verified_at: string; valid_until: string }[]; refers: { service: string; to: string; to_id: string }[] };
-type Pub = { programme: { name: string; illustrative: boolean; areas: { id: string; name: string }[] } | null; facilities: Facility[] };
+type Outline = { type: "Polygon"; coordinates: number[][][] } | { type: "MultiPolygon"; coordinates: number[][][][] };
+type Pub = { programme: { name: string; illustrative: boolean; areas: { id: string; name: string; geometry?: Outline | null }[] } | null; facilities: Facility[] };
+/** Whether [lng, lat] lies inside an area's outline (even-odd rule; holes are later rings). */
+const inside = (g: Outline | null | undefined, lng: number, lat: number) => {
+  if (!g || !Array.isArray(g.coordinates)) return false;
+  const polys = g.type === "MultiPolygon" ? g.coordinates : g.type === "Polygon" ? [g.coordinates] : [];
+  return polys.some((rings) => rings.reduce((inPoly, ring) => {
+    let hit = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit ? !inPoly : inPoly;
+  }, false));
+};
 type Area = { id: string; name: string };
 type At = "tell" | "danger" | "urgent" | "notify" | "where" | "when" | "date" | "animal" | "looks" | "call" | "phone" | "review" | "sending" | "done" | "closed";
 type Card = { kind: "danger" } | { kind: "urgent" } | { kind: "review" } | { kind: "sent"; to: string; hours: string | null } | { kind: "centres"; first: string | null } | { kind: "here"; area: string | null; how: "located" | "pinned" };
@@ -166,7 +180,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
         break;
       case "notify": out.push({ text: reply ?? NOTIFY_Q, tour: "bite-notify" }); break;
       case "centres": out.push({ text: "Here are the nearest anti-rabies centres.", voice: "The nearest centres are on your screen.", card: { kind: "centres", first: null } }, { text: reply && !/centre|center/i.test(reply) ? reply : "Take care, and please see a doctor today." }); break;
-      case "review": out.push(...(reply && !/send/i.test(reply) ? [{ text: reply }] : []), { text: "Here's your report.", voice: reviewVoice(f), card: { kind: "review" } }, { text: "Shall I send it to the nearest anti-rabies centre, so they know you're coming?", voice: "Shall I send it to the clinic?" }); break;
+      case "review": out.push(...(reply && !/send/i.test(reply) ? [{ text: reply }] : []), { text: "Here's your report.", voice: reviewVoice(f), card: { kind: "review" } }, { text: "Shall I send it to the nearest centre that has the anti-rabies vaccine, so they know you're coming?", voice: "Shall I send it to the clinic?" }); break;
       case "send": break;
       case "none": if (reply) out.push({ text: reply }); break;
       case "tell": out.push({ text: reply ?? "Tell me a little more: what happened, where and when?" }); break;
@@ -229,15 +243,11 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     step(prev, f, r.next ?? mustAsk(f), r.reply ?? null);
   };
 
-  /* Where it happened, from the phone or a pin: the nearest centre's area, when one is close. */
+  /* Where it happened, from the phone or a pin: the area whose outline holds the point. The nearest centre's area was
+     used before, which filed a bite near a boundary under the neighbouring ward; with no outline, no area is guessed. */
   const areaNear = (p: Spot) => {
-    let best: { area: string; d: number } | null = null;
-    for (const c of pub.data?.facilities ?? []) {
-      if (c.lat === null || c.lng === null || !c.area || !areas.some((a) => a.name === c.area)) continue;
-      const d = Math.hypot(c.lat - p.lat, (c.lng - p.lng) * Math.cos((p.lat * Math.PI) / 180)) * 111;
-      if (!best || d < best.d) best = { area: c.area, d };
-    }
-    return best && best.d < 6 ? best.area : null;
+    const a = areas.find((x) => inside(x.geometry, p.lng, p.lat));
+    return a ? a.name : null;
   };
   const placed = (p: Spot, how: "located" | "pinned") => {
     setSpot(p); setPicking(false);
@@ -259,12 +269,17 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     setAt("sending"); setErr(null);
     const phone = f.callback === "yes" && f.phone ? f.phone : null;
     const area = areas.find((a) => a.name === f.area)?.id ?? null;
-    const r = await call<{ facility: { name: string; hours: string | null } | null }>("oh_submit_bite_notice", { p_programme_slug: slug, p_happened_on: f.on ?? today(), p_area: area, p_place: f.place || null, p_species: f.species ?? "dog", p_animal_description: f.looks || null, p_phone: phone, p_consent: !!phone, p_lat: spot?.lat ?? null, p_lng: spot?.lng ?? null });
+    const r = await call<{ facility: { name: string; hours: string | null; vaccine?: string; vaccine_confirmed_at?: string | null } | null }>("oh_submit_bite_notice", { p_programme_slug: slug, p_happened_on: f.on ?? today(), p_area: area, p_place: f.place || null, p_species: f.species ?? "dog", p_animal_description: f.looks || null, p_phone: phone, p_consent: !!phone, p_lat: spot?.lat ?? null, p_lng: spot?.lng ?? null });
     if (r.error) { setErr(r.error); setAt("review"); return; }
-    const to = r.data?.facility ?? { name: "the programme", hours: null };
+    const to: { name: string; hours: string | null; vaccine?: string; vaccine_confirmed_at?: string | null } = r.data?.facility ?? { name: "the programme", hours: null };
     setSent({ to: to.name, hours: to.hours, time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) });
+    /* What is known about the vaccine there, as the facility last confirmed it. The notice goes to a facility with the
+       vaccine when one has confirmed it; otherwise the nearest, and the person is told to call first. */
+    const vaccine = to.vaccine === "available" ? `They confirmed the anti-rabies vaccine is available${to.vaccine_confirmed_at ? ` (${relDay(to.vaccine_confirmed_at).toLowerCase()})` : ""}.`
+      : to.vaccine === "limited" ? "They confirmed the anti-rabies vaccine is available in limited supply. Call before you go if you can."
+      : to.vaccine ? "No centre has confirmed the anti-rabies vaccine recently. Call before you go if you can, or go to the nearest hospital." : "";
     bots(
-      { card: { kind: "sent", to: to.name, hours: to.hours }, text: `Sent to ${to.name}. They know you're coming.`, voice: `Done. ${to.name} knows you're coming.${to.hours ? ` They're open ${to.hours.toLowerCase()}.` : ""} Please go today. Take care.` },
+      { card: { kind: "sent", to: to.name, hours: to.hours }, text: `Sent to ${to.name}. They know you're coming.${vaccine ? ` ${vaccine}` : ""}`, voice: `Done. ${to.name} knows you're coming.${to.hours ? ` They're open ${to.hours.toLowerCase()}.` : ""}${vaccine ? ` ${vaccine}` : ""} Please go today. Take care.` },
       { text: "When the clinic records your visit, the animal team for your area is asked to find and observe the animal.", voice: "" },
       { text: "Where to go today:", voice: "", card: { kind: "centres", first: to.name } });
     reach("sent"); setAt("done");
@@ -550,7 +565,8 @@ function Report({ facts: f, at, sent }: { facts: BiteFacts; at: At; sent: Sent |
     ["Area", f.area],
     ["Where", f.place ?? (f.pinned ? "Pinned on the map" : null)],
     ["When", f.on ? `${dayWord(f.on)}${f.when ? ` (${f.when})` : ""}` : null],
-    ["Danger signs", f.danger === "no" ? "None of the listed signs" : f.danger === "yes" ? "Yes: emergency care advised" : null],
+    /* A young child is itself on the danger list, so the report does not also say "none" when one was bitten. */
+    ["Danger signs", f.danger === "no" ? (f.person === "child" ? "A child was bitten; none of the other signs" : "None of the listed signs") : f.danger === "yes" ? "Yes: emergency care advised" : null],
     ["Looked like", f.looks],
     ["Call back", f.callback === "yes" ? (f.phone ? `Yes, on ${f.phone}` : "Yes") : f.callback === "no" ? "No" : null],
   ];

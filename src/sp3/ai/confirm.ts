@@ -127,6 +127,7 @@ export async function confirmExposure(db: Db, userId: string, p: Exposure, now =
     || !(p.ageBand === null || BANDS.includes(p.ageBand)) || !(p.sex === null || ["female", "male"].includes(p.sex)) || !(p.woundWashed === null || WASH.includes(p.woundWashed))
     || !SPECIES.includes(p.species) || !OWN.includes(p.ownership) || !optUuid(p.areaId) || typeof p.reminderConsent !== "boolean"
     || (p.patientRef !== null && (typeof p.patientRef !== "string" || p.patientRef.length > 40)) || (p.animalPlace !== null && (typeof p.animalPlace !== "string" || p.animalPlace.length > 200))
+    || (p.animalDescription != null && (typeof p.animalDescription !== "string" || p.animalDescription.length > 300))
     || (p.contactPhone !== null && (typeof p.contactPhone !== "string" || !/^[0-9+ ]{8,16}$/.test(p.contactPhone)));
   if (bad) return fail(400, "Review and confirm a supported proposal.");
   const today = indiaDay(now);
@@ -159,7 +160,7 @@ export async function confirmExposure(db: Db, userId: string, p: Exposure, now =
     : `A ${what} with the same date and details is already recorded today as ${same.code}. Nothing new was saved. If this is another patient, add their register number and ask me again, or use the bite form.`, { href: `/health/bites/${same.id}`, code: same.code });
   const args = {
     p_facility: f.id, p_exposure_on: p.exposureOn, p_kind: p.exposureKind, p_area: p.areaId ?? null, p_age_band: p.ageBand ?? "not_recorded", p_sex: p.sex ?? "not_recorded",
-    p_patient_ref: p.patientRef, p_species: p.species, p_ownership: p.ownership, p_animal_description: null, p_animal_place: p.animalPlace,
+    p_patient_ref: p.patientRef, p_species: p.species, p_ownership: p.ownership, p_animal_description: p.animalDescription?.trim() || null, p_animal_place: p.animalPlace,
     p_category: p.category ?? "not_recorded", p_source: "walk_in", p_notice: null, p_contact_phone: p.reminderConsent ? p.contactPhone : null,
     p_reminder_consent: p.reminderConsent && !!p.contactPhone, p_request_followup: p.ownership !== "owned", p_wound_washed: p.woundWashed ?? "not_recorded",
   };

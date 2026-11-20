@@ -52,3 +52,10 @@ create or replace function public.add_case_note(p_case_id uuid, p_actor_id uuid,
 create or replace function public.add_case_followup(p_case_id uuid, p_dog_id uuid, p_due date, p_notes text) returns uuid language sql security definer set search_path = public as $$ select null::uuid $$;
 create table public.report_packages (id uuid primary key default gen_random_uuid(), ngo_id uuid, office_id uuid, status text default 'draft', case_ids uuid[] default '{}', submitted_at timestamptz);
 grant select on public.medical_events, public.operational_audit_log to authenticated;
+-- Deleting and restoring records (20261103180000_removable_records.sql, 20261120131000_records_remove_animals_names.sql):
+-- the columns and the timeline table those functions read, as in production.
+alter table public.dogs add column color text default 'Brown', add column created_by_id uuid;
+alter table public.cases add column created_by_id uuid;
+create table public.animal_timeline_events (id uuid primary key default gen_random_uuid(), dog_id uuid references public.dogs(id) on delete cascade, case_id uuid references public.cases(id) on delete set null, event_type text, title text, actor_id uuid, actor_name text, occurred_at timestamptz default now(), created_at timestamptz default now());
+create table public.evidence_items (id uuid primary key default gen_random_uuid(), ngo_id uuid, case_id uuid references public.cases(id) on delete set null, dog_id uuid references public.dogs(id) on delete set null, created_at timestamptz default now());
+create table public.evidence_reviews (id uuid primary key default gen_random_uuid(), evidence_id uuid references public.evidence_items(id), created_at timestamptz default now());

@@ -68,7 +68,7 @@ function describe(p: Prep): { line: string; facts: string[] } {
         bits([str(p.facilityName), `${EXPOSURE[str(p.exposureKind) ?? ""] ?? "Exposure"} on ${day(str(p.exposureOn)) ?? "a date not given"}`, str(p.site)]),
         `Patient: ${bits([str(p.patientRef) ?? "no register number", str(p.ageText) ?? "age not given", str(p.sex) ?? "sex not given"])}`,
         `Category: ${str(p.category) ?? "not recorded; the clinician records it"} · Wound: ${WASHED[str(p.woundWashed) ?? ""] ?? "washing not recorded"}`,
-        `Animal: ${bits([str(p.species) && p.species !== "unknown" ? str(p.species) : "not stated", str(p.animalPlace), str(p.areaName) ? `area ${str(p.areaName)}` : null])}`,
+        `Animal: ${bits([str(p.species) && p.species !== "unknown" ? str(p.species) : "not stated", str(p.animalDescription), str(p.animalPlace), str(p.areaName) ? `area ${str(p.areaName)}` : null])}`,
         `Reminder calls: ${p.reminderConsent === true ? "agreed, phone saved" : "not agreed"}`,
       ],
     };

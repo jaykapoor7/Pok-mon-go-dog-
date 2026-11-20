@@ -186,12 +186,26 @@ function Referrals({ sample, transfers, canRefer, onRefer, onWithdraw }: { sampl
     starts from this one; "Change" opens the full form for anything else. */
 const PROTOCOL = { regimen: "Intradermal, 2 sites (updated Thai Red Cross): days 0, 3, 7 and 28", label: "Intradermal, 2 sites", source: "Updated Thai Red Cross", days: [0, 3, 7, 28] };
 const addDays = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+/** What a referral carries (oh_referral_history): the sending facility, its regimen and the doses it recorded as given. */
+type RefHistory = { from: string | null; sent_at: string; service: string; regimen: string | null; given: { dose: number; on: string }[] };
+/** The protocol's remaining doses after those already given elsewhere, counted from the first dose given there (its
+    day 0). A date already past is moved to today: the clinician sees it and can change it. */
+const remainingAfter = (given: RefHistory["given"], today: string) => {
+  const day0 = given[0]?.on;
+  if (!day0) return null;
+  return PROTOCOL.days.slice(Math.min(given.length, PROTOCOL.days.length)).map((n) => { const d = addDays(day0, n); return { day: n, on: d < today ? today : d }; });
+};
 
 function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure; where: string | null; onDone: () => void }) {
   const live = useLive();
   const tick = useId();
-  /* Day 0 is today in India; each later dose is counted from it. */
-  const planned = PROTOCOL.days.map((n) => addDays(indiaToday(), n));
+  /* Day 0 is today in India; each later dose is counted from it. A person referred after doses elsewhere starts from
+     where they are: only the remaining doses, counted from their first dose there. */
+  const hist = useRead<RefHistory | null>(() => (!sample && e.source === "referral" ? call<RefHistory | null>("oh_referral_history", { p_exposure: e.id }) : Promise.resolve({ data: null, error: null })), `nx-refhist:${e.id}`);
+  const given = hist.data?.given ?? [];
+  const rest = given.length ? remainingAfter(given, indiaToday()) : null;
+  const plan = rest ?? PROTOCOL.days.map((n) => ({ day: n, on: addDays(indiaToday(), n) }));
+  const planned = plan.map((x) => x.on);
   const [changing, setChanging] = useState(false);
   const [regimen, setRegimen] = useState(PROTOCOL.regimen), [rig, setRig] = useState(false), [dates, setDates] = useState<string[]>(planned);
   const [signed, setSigned] = useState(false);
@@ -210,10 +224,14 @@ function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure;
         <div><h4 id={`${tick}-t`} className="gh-kaju-t">Kaju prepared the course</h4><p className="gh-kaju-s">From your clinic&apos;s protocol. Nothing is saved until you confirm it.</p></div>
         {sample ? null : <button type="button" className="gh-link gh-kaju-x" data-tour="course-change" onClick={() => { setRegimen(PROTOCOL.regimen); setDates(planned); setChanging(true); }}>Change</button>}
       </div>
-      <div className="gh-kaju-rx"><b>{PROTOCOL.label}</b><small>{PROTOCOL.source} · {planned.length} doses, the first today</small></div>
-      {e.source === "referral" ? <p className="nx-note" style={{ marginTop: 8 }}><Info size={13} aria-hidden /><span>This person came by referral. Doses may already have been given at the facility that sent them: ask, and change the dates before saving if so.</span></p> : null}
+      <div className="gh-kaju-rx"><b>{PROTOCOL.label}</b><small>{PROTOCOL.source} · {rest ? `the ${planned.length} remaining ${planned.length === 1 ? "dose" : "doses"}` : `${planned.length} doses, the first today`}</small></div>
+      {e.source === "referral" ? <p className="nx-note" style={{ marginTop: 8 }}><Info size={13} aria-hidden /><span>{given.length
+        ? <>Referred by {hist.data?.from ?? "another facility"}, where {given.length === 1 ? "dose 1 was" : `doses ${given.map((g) => g.dose).join(", ")} were`} given ({given.map((g) => fmtDate(g.on, { day: "numeric", month: "short" })).join(", ")}){hist.data?.regimen ? `, ${hist.data.regimen}` : ""}. Kaju prepared only the remaining doses, counted from the first. Check with the person, and change the dates if they differ.</>
+        : hist.loading ? "This person came by referral. Reading what the referral says about doses already given…"
+        : hist.data ? `This person came by referral from ${hist.data.from ?? "another facility"}, which recorded no dose given. Ask, and change the dates before saving if they had one.`
+        : "This person came by referral. Doses may already have been given at the facility that sent them: ask, and change the dates before saving if so."}</span></p> : null}
       <ol className="gh-sched" aria-label="Dose dates Kaju prepared">
-        {planned.map((d, i) => <li key={d} className={i === 0 ? "is-now" : undefined}><span>Day {PROTOCOL.days[i]}</span><b><time dateTime={d}>{fmtDate(d, { day: "numeric", month: "short" })}</time></b><small>{i === 0 ? "Today" : fmtDate(d, { weekday: "short" })}</small></li>)}
+        {plan.map((x, i) => <li key={`${x.day}-${x.on}`} className={x.on === indiaToday() && i === 0 ? "is-now" : undefined}><span>Day {x.day}</span><b><time dateTime={x.on}>{fmtDate(x.on, { day: "numeric", month: "short" })}</time></b><small>{x.on === indiaToday() ? "Today" : fmtDate(x.on, { weekday: "short" })}</small></li>)}
       </ol>
       <div className="gh-kaju-q" data-tour="course-rig">
         <span className="gh-kaju-l" aria-hidden>Rabies immunoglobulin</span>

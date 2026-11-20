@@ -46,7 +46,7 @@ export function mapDog(row: any): Dog {
     cover_photo: row.cover_photo || row.external_image_url || "",
     photos: [row.cover_photo, row.external_image_url].filter((photo): photo is string => Boolean(photo)),
     size: (row.size ?? "medium") as DogSize,
-    color: row.color ?? "Brown",
+    color: row.color ?? "",
     is_friendly: row.is_friendly ?? true,
     needs_help: row.needs_help ?? false,
     sterilised: row.sterilised ?? false,

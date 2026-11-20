@@ -20,7 +20,7 @@ export type Proposal = ProposalBase & (
      exposureTime and site are shown for checking but the register has no field for them, so they are not saved. */
   | { kind: "register_exposure"; facilityId: string; facilityName: string; exposureOn: string; exposureTime: string | null; exposureKind: ExposureKind; site: string | null;
       category: "I" | "II" | "III" | null; patientRef: string | null; ageBand: AgeBand | null; ageText: string | null; sex: "female" | "male" | null; woundWashed: WoundWashed | null;
-      species: Species; ownership: "community" | "owned" | "unknown"; animalPlace: string | null; areaId: string | null; areaName: string | null; contactPhone: string | null; reminderConsent: boolean }
+      species: Species; ownership: "community" | "owned" | "unknown"; animalPlace: string | null; animalDescription?: string | null; areaId: string | null; areaName: string | null; contactPhone: string | null; reminderConsent: boolean }
   /* Connections: these act outside StrayPaw, so they run only on Confirm (/api/connections/act). */
   | { kind: "email"; provider: ConnProvider; providerName: string; to: string[]; cc: string[]; subject: string; body: string; send: boolean }
   | { kind: "calendar_event"; provider: ConnProvider; providerName: string; title: string; start: string; end: string; attendees: string[]; location: string | null }

@@ -22,6 +22,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import type { AgeBand, ExposureKind, Species, WoundWashed } from "./types";
+import { readLooks } from "@/oh/biteIntake";
 
 /* ── dates, in India ─────────────────────────────────────────────────── */
 const IST_MS = 5.5 * 3_600_000;
@@ -374,6 +375,8 @@ export type ExposureNote = {
   category: "I" | "II" | "III" | null; patientRef: string | null; ageText: string | null; ageBand: AgeBand | null; sex: "female" | "male" | null;
   washed: WoundWashed | null; washedUnclear: boolean; species: Species; speciesStated: boolean; ownership: "community" | "owned" | "unknown";
   place: string | null; phone: string | null; consent: boolean;
+  /** What the animal looked like, in the note's words ("brown stray"), for the animal team. */
+  animal: string | null;
 };
 const PERSON = /\b(?:boy|girl|man|woman|lady|gentleman|child|kid|baby|infant|toddler|son|daughter|patient|person|student|farmer|worker|(?:\d{1,3}\s*(?:-|\s)?(?:years?|yrs?|yr|y)\s*(?:-|\s)?(?:old|o)?)|\d{1,3}\s*y\/o|\d{1,3}\s*(?:yo|m|f)\b)/i;
 const EXPOSURE_VERB = /\b(?:bitten|bite|bit|scratched|scratch|licked|lick)\b/i;
@@ -438,6 +441,6 @@ export function parseExposure(raw: string, now = new Date()): ExposureNote | nul
     category, patientRef: refM ? (/^(?:opd|ipd|uhid|mrn|cr)$/i.test(refM[1]) ? `${refM[1].toUpperCase()} ${refM[2].toUpperCase()}` : refM[2].toUpperCase()).slice(0, 40) : null,
     ageText: years === null ? null : monthsM && !ageM ? `${monthsM[1]} months` : `${years} years`, ageBand,
     sex, washed, washedUnclear, species, speciesStated: !!speciesM, ownership, place: placeIn(plain),
-    phone: phoneM ? phoneM[1].replace(/[\s-]/g, "") : null, consent,
+    phone: phoneM ? phoneM[1].replace(/[\s-]/g, "") : null, consent, animal: readLooks(plain),
   };
 }
