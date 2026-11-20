@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Printer } from "lucide-react";
 import { rememberHome, resolveHome } from "@/lib/home-city";
-import { myContext } from "@/lib/abc";
+import { myContext, myContextIfSignedIn } from "@/lib/abc";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSpatialDataset } from "@/sp/data/spatial";
 import { cityEvidence, KINDS } from "@/sp/atlas/evidence";
@@ -52,7 +52,7 @@ export function Insights() {
   useEffect(() => {
     if (homed.current || !cities.length) return;
     homed.current = true;
-    myContext().then((c) => { const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); const hit = cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; if (!hit && c.offices[0]?.city) setAway(c.offices[0].city); return hit; })
+    myContextIfSignedIn().then((c) => { if (!c) return null; const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); const hit = cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; if (!hit && c.offices[0]?.city) setAway(c.offices[0].city); return hit; })
       .catch(() => null).then((o) => o ?? resolveHome(cities)).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
   }, [cities, city, router]);
 

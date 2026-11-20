@@ -84,6 +84,8 @@ const nextConfig = {
         ["/resources", "/learn/resources"],
         /* Trust */
         ["/moderate", "/trust"], ["/admin", "/trust/console"],
+        /* Kaju's page before the rebuild (links on /ai pointed here and 404ed) */
+        ["/assistant", "/kaju"],
         /* Site pages that predate 2.0 */
         ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
       ]),

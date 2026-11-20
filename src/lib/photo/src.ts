@@ -28,20 +28,25 @@ function snap(width: number) {
   return ALLOWED.find((w) => w >= width) ?? ALLOWED[ALLOWED.length - 1];
 }
 
+/** Qualities the optimizer accepts: `images.qualities` in next.config.mjs. Any other value is refused with a 400
+    (INVALID_IMAGE_OPTIMIZE_REQUEST), which is how every photo drawn through here broke when that list was added. */
+const QUALITIES = [75, 85, 90, 95];
+
 /**
  * A URL for `src` at roughly `width` css pixels, doubled for retina.
  *
  * @param width  the size it will actually be drawn at, in css pixels.
- * @param quality  JPEG quality. 70 is invisible at thumbnail sizes.
+ * @param quality  JPEG quality, rounded up to one the optimizer accepts. 75 is invisible at thumbnail sizes.
  */
-export function sized(src: string | null | undefined, width: number, quality = 70): string {
+export function sized(src: string | null | undefined, width: number, quality = 75): string {
   if (!src) return "";
   const url = src.trim();
   if (!url) return "";
   /* Already small, already local, or not something the optimizer takes. */
   if (url.startsWith("data:") || url.startsWith("blob:")) return url;
   if (!/^https?:\/\//i.test(url)) return url;
-  return `/_next/image?url=${encodeURIComponent(inatAt(url, width * 2))}&w=${snap(width * 2)}&q=${quality}`;
+  const q = QUALITIES.find((v) => v >= quality) ?? QUALITIES[QUALITIES.length - 1];
+  return `/_next/image?url=${encodeURIComponent(inatAt(url, width * 2))}&w=${snap(width * 2)}&q=${q}`;
 }
 
 /* iNaturalist serves each photo at fixed sizes named in the path: square

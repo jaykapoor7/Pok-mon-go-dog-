@@ -18,6 +18,12 @@
 .fm-map { position: absolute; inset: 0; }
 .fm-map .maplibregl-ctrl-attrib { background: rgba(255, 253, 249, 0.85); font-size: 12px; }
 .fm button { font: inherit; color: inherit; cursor: pointer; }
+/* The lens row and the map tools sit inside MobileDetails folds (Chrome.tsx). This sheet lays them out for every
+   width itself (a sideways lens row and a tool grid on a phone), so on the map the folds are always open and their
+   toggles are not drawn. The fold styles went with the retired app shell (#116), which left a bare "Map layer: …"
+   toggle floating over the map and a "Map tools" button hidden under the title. */
+.fm .mobile-details, .fm .mobile-details-content { display: contents; }
+.fm .mobile-details-toggle { display: none; }
 .fm :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
 /* ── Place ── */

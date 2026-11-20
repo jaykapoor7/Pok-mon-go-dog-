@@ -83,6 +83,15 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 }
 
 export const myContext = () => rpc<AbcContext>("abc_my_context");
+/** The person's reviewing-office context, or null for a visitor who is not signed in. The function refuses anonymous
+    callers (401), so public pages ask only when there is a session instead of logging a failed request. */
+export async function myContextIfSignedIn(): Promise<AbcContext | null> {
+  if (isRecordingDemo) return myContext();
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data } = await supa.auth.getSession();
+  return data.session ? myContext() : null;
+}
 export const verificationQueue = (limit = 300) => rpc<QueueRow[]>("abc_verification_queue", { p_limit: limit });
 export const caseChecklist = (caseId: string) => rpc<Checklist>("abc_case_checklist", { p_case_id: caseId });
 export const caseHistory = (caseId: string) => rpc<HistoryRow[]>("abc_case_history", { p_case_id: caseId });

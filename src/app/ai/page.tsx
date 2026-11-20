@@ -52,6 +52,6 @@ export default function AiPage() {
       ["Can Kaju see other organisations' records?", "No. Kaju reads with your own session, so it sees exactly what you can see."],
       ["What if Kaju is wrong?", "Answers based on records include source links. Prepared changes wait for a person to confirm."],
     ],
-    close: { a: "Give the routine checks", b: "to Kaju.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/assistant", label: "Open Kaju" } },
+    close: { a: "Give the routine checks", b: "to Kaju.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/kaju", label: "Open Kaju" } },
   }} />;
 }

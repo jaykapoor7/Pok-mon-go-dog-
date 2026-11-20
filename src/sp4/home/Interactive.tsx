@@ -117,7 +117,7 @@ const BANDS: { title: ReactNode; link: { href: string; label: string }; jobs: st
       { who: "Ravi", ask: "Did we catch any dog twice on Tuesday's capture day?", scope: "Ward 3 · 7 Nov", steps: [["search_records", "Read 18 captures"], ["find_duplicates", "Compared recorded names and localities"], ["work_summary", "Listed the closest pairs"]], found: ["SP-3131 / SP-3109", "SP-3135 / SP-3098"], prepared: "2 pairs for Anita to mark same or different", by: "Asked on demand · Kaju never merges records itself" },
       { who: "Ravi", ask: "“two females released at the water tank, both notched, photos sent”", scope: "Field message", steps: [["extract_field_message", "Read the message"], ["search_records", "Matched 2 recent surgeries"], ["propose_note", "Drafted release notes"]], found: ["SP-3119", "SP-3122"], prepared: "Release notes on 2 records, with place and time", by: "Saved only when Ravi confirms" },
     ] },
-  { title: <>Kaju works for{" "}<br />every role</>, link: { href: "/assistant", label: "Open Kaju" },
+  { title: <>Kaju works for{" "}<br />every role</>, link: { href: "/kaju", label: "Open Kaju" },
     jobs: ["Show a vet what still needs their signature", "Remind the field team which second doses are due", "List what to fix before month end", "Answer a reviewer's query with the records"],
     runs: [
       { who: "Dr. Thomas", ask: "What still needs my signature?", scope: "Zone 5 · this week", steps: [["search_records", "Read 31 procedures"], ["find_missing_evidence", "Filtered to your patients"]], found: ["SP-5012", "SP-5019", "SP-5023", "SP-5030"], prepared: "Nothing: authorising is yours to do", by: "Kaju cannot sign for a vet" },
