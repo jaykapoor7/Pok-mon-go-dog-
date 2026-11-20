@@ -263,14 +263,14 @@ export function Surveillance() {
           </section>
           <section className="nx-sec" aria-labelledby="sv-a" style={{ marginTop: 0 }}>
             <div className="nx-sec-h"><h2 id="sv-a">By area</h2></div>
-            <div className="nx-bars">{areas.slice(0, 10).map((a) => <div key={a.area} className="nx-barrow" style={{ gridTemplateColumns: "96px minmax(0, 1fr) 40px" }}><span className="nx-t2">{a.area}</span><span className="nx-bar-t"><span style={{ width: a.n === "<5" ? "6%" : `${(val(a.n) / maxArea) * 100}%`, opacity: a.n === "<5" ? .45 : 1 }} /></span><em>{num(a.n)}</em></div>)}</div>
+            <div className="nx-bars">{areas.map((a) => <div key={a.area} className="nx-barrow" style={{ gridTemplateColumns: "96px minmax(0, 1fr) 40px" }}><span className="nx-t2">{a.area}</span><span className="nx-bar-t"><span style={{ width: a.n === "<5" ? "6%" : `${(val(a.n) / maxArea) * 100}%`, opacity: a.n === "<5" ? .45 : 1 }} /></span><em>{num(a.n)}</em></div>)}</div>
             {s?.positive_areas?.length ? <p className="nx-note" style={{ marginTop: 12 }}><MapPin size={13} /><span>Positive results in {s.positive_areas.join(", ")}. {s.waiting} {s.waiting === 1 ? "sample waits" : "samples wait"} for a result{s.median_days_to_result !== null ? `; results take ${s.median_days_to_result} days at the median` : ""}.</span></p> : null}
           </section>
         </div>
         <section className="nx-sec" aria-labelledby="sv-al" style={{ marginTop: 30 }}>
           <div className="nx-sec-h"><h2 id="sv-al">Alerts</h2><span className="nx-count">{alerts.length}</span>{h ? <span className="nx-link" style={{ cursor: "default" }}>{h.open} open handoffs{h.overdue ? `, ${h.overdue} overdue` : ""}</span> : null}</div>
-          <ul className="nx-feed">{alerts.slice(0, phone && !allAlerts ? 5 : 12).map((a) => <li key={a.key}><span className="nx-feed-i" style={a.severity === "urgent" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small><Chip tone={SEV[a.severity].tone}>{SEV[a.severity].label}</Chip> {a.kind}{a.area ? ` · ${a.area}` : ""} · {a.at}{a.ack ? ` · ${a.ack}` : ""}</small></div></li>)}</ul>
-          {phone && !allAlerts && alerts.length > 5 ? <button type="button" className="nx-btn is-quiet gh-more" onClick={() => setAllAlerts(true)}>Show {Math.min(alerts.length, 12) - 5} more</button> : null}
+          <ul className="nx-feed">{alerts.slice(0, phone && !allAlerts ? 5 : undefined).map((a) => <li key={a.key}><span className="nx-feed-i" style={a.severity === "urgent" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small><Chip tone={SEV[a.severity].tone}>{SEV[a.severity].label}</Chip> {a.kind}{a.area ? ` · ${a.area}` : ""} · {a.at}{a.ack ? ` · ${a.ack}` : ""}</small></div></li>)}</ul>
+          {phone && !allAlerts && alerts.length > 5 ? <button type="button" className="nx-btn is-quiet gh-more" onClick={() => setAllAlerts(true)}>Show all {alerts.length}</button> : null}
           {!alerts.length && !al.loading ? <p className="nx-sub">No alerts.</p> : null}
           <p className="nx-foot">Each alert comes from a written rule, such as a positive result or a facility without vaccine. A person in the programme reviews and acknowledges it.</p>
         </section>
@@ -338,6 +338,13 @@ export function GovReports() {
   );
 }
 
+/** Where an alert is acted on: the programme tab that holds its work (as on the programme's own Overview), otherwise
+    Surveillance. Every row used to open the top of Surveillance, whatever it was about. */
+const alertHref = (a: Alert, slug: string | null | undefined) => {
+  const tab = a.kind === "positive_result" || a.kind === "followups_overdue" ? "Work" : a.kind === "pep_readiness" ? "Network" : a.kind === "coverage_below_target" ? "Coverage" : null;
+  return tab && slug ? `/gov/programmes/${slug}?tab=${tab}` : "/gov/surveillance";
+};
+
 /* ── Overview for a programme coordinator or municipal officer ────── */
 /** The programme lead's home: @Kaju, four figures with what they count drawn small, each opening the list it counts
     (Surveillance, Programmes below target, Partners with overdue requests), and three panels side by side (what needs a
@@ -386,7 +393,7 @@ export function ProgrammeHome() {
         </Tiles>
         <Grid cols={2}>
           <Panel id="h-u" title="Needs a decision">
-            <Rows items={al.data ? [...urgent, ...openAlerts.filter((a) => a.severity === "attention")].map((a): Item => ({ id: a.key, title: a.title, meta: [ALERT_KIND[a.kind] ?? a.kind, a.area, fmtDate(a.at)].filter(Boolean).join(" · "), href: "/gov/surveillance", icon: <ShieldAlert size={16} />, tone: a.severity === "urgent" ? "bad" : "warn", chip: { text: a.severity === "urgent" ? "Urgent" : "Attention", tone: a.severity === "urgent" ? "bad" : "warn" }, kaju: `What should happen next about: ${a.title}?`, kajuLabel: `Ask @Kaju about ${a.title}` })) : null}
+            <Rows items={al.data ? [...urgent, ...openAlerts.filter((a) => a.severity === "attention")].map((a): Item => ({ id: a.key, title: a.title, meta: [ALERT_KIND[a.kind] ?? a.kind, a.area, fmtDate(a.at)].filter(Boolean).join(" · "), href: alertHref(a, slug), icon: <ShieldAlert size={16} />, tone: a.severity === "urgent" ? "bad" : "warn", chip: { text: a.severity === "urgent" ? "Urgent" : "Attention", tone: a.severity === "urgent" ? "bad" : "warn" }, kaju: `What should happen next about: ${a.title}?`, kajuLabel: `Ask @Kaju about ${a.title}` })) : null}
               loading={al.loading} error={al.err ? `Alerts could not be read: ${al.err}.` : null} all={{ href: "/gov/surveillance", label: "All alerts on Surveillance" }} empty="Nothing urgent or needing attention is open." />
           </Panel>
           <Panel id="h-c" title="Coverage by area" foot={<span>Lowest first. Coverage is vaccinated dogs on StrayPaw against a dated estimate.</span>}>

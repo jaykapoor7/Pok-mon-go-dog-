@@ -17,6 +17,7 @@ import { DECISION_LABEL, decideItem, downloadPackage, finalizePackage, indiaToda
 import { samplePackage } from "../../data/govhealth-samples";
 import { Block, GhMark, OpenFile, Opening, SignedConfirm, TryLink, usePhone } from "../gh/parts";
 import { Sheet } from "../../Phone";
+import { shortCode } from "@/lib/caseCode";
 
 /* One package from an operator, as the reviewing office decides it. Records and their evidence on the left; the
    checks, the exceptions and the decision on the right. Every decision is recorded in the reviewer's own name
@@ -339,7 +340,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
         : <HistoryTab pkg={pkg} events={events} items={items} sample={sample} />}
       {dialog}
       <GhMark />
-      {phone && selected && itemReview ? <Sheet open={claimSheet} onClose={() => setClaimSheet(false)} label={`Claim ${selected.case_code ?? selected.title}`} full>
+      {phone && selected && itemReview ? <Sheet open={claimSheet} onClose={() => setClaimSheet(false)} label={`Claim ${selected.case_code ? shortCode(selected.case_code) : selected.title}`} full>
         <div className="gh-claim-sheet">
           {(() => { const c = cases.find((x) => x.case_id === selected.case_id); return <Block title={selected.title || "Evidence"} note={[selected.procedure_label, c?.city ? `Recorded in ${c.city}` : null].filter(Boolean).join(" · ")}>{evidenceOf(selected, c)}<h3 className="nx-h3">Sign-offs</h3>{signoffs(selected, c)}</Block>; })()}
           {decideBox}
@@ -364,7 +365,7 @@ function RecordsTab({ cases, sample }: { cases: PackageCase[]; sample: boolean }
     <div className="gh-body is-narrow">
       <ul className="gh-list" aria-label="Records in this package">
         {cases.map((c) => <li key={c.case_id}><div><b>{c.title || c.case_code}</b><small>{[c.case_code, c.city].filter(Boolean).join(" · ")} · {c.evidence.length} evidence {c.evidence.length === 1 ? "item" : "items"} · vet {c.vet_name ?? "not recorded"} · reviewed by {c.reviewer_name ?? "not recorded"}</small></div>
-          <span className="gh-row-a">{c.evidence.filter((e) => e.url).slice(0, 3).map((e, i) => <OpenFile key={i} url={e.url}>{evLabel(e.kind)}</OpenFile>)}<button type="button" className="nx-btn is-sm is-quiet" aria-expanded={pick === c.case_id} onClick={() => setPick(pick === c.case_id ? null : c.case_id)}>Operation history</button></span></li>)}
+          <span className="gh-row-a">{c.evidence.filter((e) => e.url).map((e, i) => <OpenFile key={i} url={e.url}>{evLabel(e.kind)}</OpenFile>)}<button type="button" className="nx-btn is-sm is-quiet" aria-expanded={pick === c.case_id} onClick={() => setPick(pick === c.case_id ? null : c.case_id)}>Operation history</button></span></li>)}
       </ul>
       {!cases.length ? <Empty title="No records in this package" /> : null}
       {pick ? <Block title="Operation history" note="As recorded on the animal now. Read only here.">

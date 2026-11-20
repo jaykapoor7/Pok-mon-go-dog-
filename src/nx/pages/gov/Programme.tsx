@@ -75,7 +75,7 @@ function View({ sample, p, caps, places, first, reloadProg }: { sample: boolean;
 }
 
 const Periods = ({ days, set }: { days: number; set: (d: number) => void }) => (
-  <div className="nx-views" role="tablist" aria-label="Period">{[[30, "30 days"], [90, "90 days"], [365, "12 months"]].map(([d, l]) => <button key={d} type="button" role="tab" aria-selected={days === d} className={`nx-view ${days === d ? "is-on" : ""}`} onClick={() => set(d as number)}>{days === d ? <span className="nx-view-bg" /> : null}<span>{l}</span></button>)}</div>
+  <div className="nx-views nx-periods" role="tablist" aria-label="Period">{[[30, "30 days"], [90, "90 days"], [365, "12 months"]].map(([d, l]) => <button key={d} type="button" role="tab" aria-selected={days === d} className={`nx-view ${days === d ? "is-on" : ""}`} onClick={() => set(d as number)}>{days === d ? <span className="nx-view-bg" /> : null}<span>{l}</span></button>)}</div>
 );
 
 /* ── Overview: what needs a decision, the figures, partners and training ── */
@@ -85,6 +85,7 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
   const al = useOh<Alert[]>(sample, SAMPLE_ALERTS, () => call("oh_alerts", { p_programme: p.id }), `nx-pal:${p.id}`);
   const [ack, setAck] = useState<Alert | null>(null);
   const [training, setTraining] = useState(false);
+  const [allAlerts, setAllAlerts] = useState(false);
   const d = o.data;
   const mods = d?.programme.modules ?? p.config.modules ?? ALL_MODULES;
   const openAlerts = (al.data ?? []).filter((a) => !a.ack);
@@ -104,12 +105,13 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
       {!sample && d && (mods.includes("bite_care") || mods.includes("laboratory")) ? <Block title="Where to act" note="Bites, confirmed cases and dog vaccination, by area"><AreaIntel programme={p.id} slug={p.slug} d={d} /></Block> : null}
       <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)", marginTop: 24, gap: 28 }}>
         <Block title="Needs a decision">
-          {al.error ? <Failed error={al.error} retry={al.reload} /> : al.loading ? <Skeleton rows={3} /> : (al.data ?? []).length ? (
-            <ul className="nx-feed">{(al.data ?? []).slice(0, 8).map((a) => { const t = target(a); return (
+          {al.error ? <Failed error={al.error} retry={al.reload} /> : al.loading ? <Skeleton rows={3} /> : (al.data ?? []).length ? (<>
+            <ul className="nx-feed">{(al.data ?? []).slice(0, allAlerts ? undefined : 8).map((a) => { const t = target(a); return (
               <li key={a.key}><span className="nx-feed-i" style={a.severity === "urgent" && !a.ack ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><ShieldAlert size={12} /></span>
                 <div><b>{a.title}</b><p>{a.detail}</p><small><Chip tone={a.ack ? "plain" : SEV[a.severity].tone}>{a.ack ? "Acknowledged" : SEV[a.severity].label}</Chip> {ALERT_KIND[a.kind] ?? a.kind}{a.area ? ` · ${a.area}` : ""} · {fmtDate(a.at)}{a.ack ? ` · by ${a.ack.by ?? "a programme member"}, ${fmtDate(a.ack.at)}${a.ack.note ? `: ${a.ack.note}` : ""}` : ""}</small>
                   <div className="gh-acts" style={{ marginTop: 6 }}>{t ? <button type="button" className="nx-btn is-sm is-quiet" onClick={() => go(t)}>Open {t.toLowerCase()}</button> : null}{!a.ack && caps.has("ack_alert") ? (sample ? <TryLink sm quiet>Acknowledge</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setAck(a)}>Acknowledge</button>) : null}</div></div></li>); })}</ul>
-          ) : <p className="nx-sub">No alerts.</p>}
+            {!allAlerts && (al.data ?? []).length > 8 ? <button type="button" className="nx-btn is-quiet gh-more" onClick={() => setAllAlerts(true)}>Show all {(al.data ?? []).length}</button> : null}
+          </>) : <p className="nx-sub">No alerts.</p>}
         </Block>
         <div>
           <Block title="Partners" note="Organisations taking part. Joining does not open one organisation's records to another.">
@@ -274,6 +276,10 @@ function WorkTab({ sample, p, caps, places }: Ctx) {
   const list = all.filter((h) => (lane === "open" ? isOpen(h) : lane === "overdue" ? late(h) : !isOpen(h)));
   const mine = (h: Handoff) => sample ? h.to_org === "o2" : places.some((x) => x.organisation_id === h.to_org && x.capabilities.includes("act_handoff"));
   const accept = async (h: Handoff) => { const r = await run(`acc:${h.id}`, () => call("oh_handoff_act", { p_handoff: h.id, p_action: "accept" }), { ok: "Accepted. It shows as in progress for the programme." }); if (r.ok) hand.reload(); };
+  /* Requests are read by the partners they pass between and by those who oversee the programme. Anyone else (a research
+     group) reads none, which must not be shown as "0 open". */
+  const reads = sample || ["oversee", "raise_handoff", "act_handoff"].some((c) => caps.has(c));
+  if (!reads) return <div className="gh-body" style={{ maxWidth: 1120 }}><Empty title="Requests between partners are not shown to you" hint="They are visible to the partners they pass between and to the programme's coordinators. Counts here would read as none, so none are shown." /></div>;
   return (
     <div className="gh-body" style={{ maxWidth: 1120 }}>
       <div className="nx-head"><p className="nx-sub" style={{ margin: 0 }}>{hand.error ? "The requests could not be read." : hand.loading ? "Reading the requests…" : <><b className="num">{all.filter(isOpen).length}</b> open between partners{all.filter(late).length ? <>, <b className="num">{all.filter(late).length}</b> overdue</> : null}. Requests never carry patient details.</>}</p>
@@ -294,7 +300,7 @@ function AskModal({ p, partners, areas, onClose, onDone }: { p: Prog; partners: 
   const [f, setF] = useState({ kind: "vaccination_request", to: partners[0]?.id ?? "", title: "", detail: "", area: "", due: "" });
   const { busy, run } = useAct();
   const save = async () => { const r = await run("ask", () => call("oh_raise_handoff", { p_programme: p.id, p_kind: f.kind, p_to: f.to, p_title: f.title.trim(), p_detail: f.detail.trim() || null, p_area: f.area || null, p_due: f.due || null }), { ok: "Sent. It is on the partner's list now, with the due date." }); if (r.ok) onDone(); };
-  return <Modal title="Ask a partner" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || f.title.trim().length < 3 || !f.to} onClick={() => void save()}>Send request</button></>}>
+  return <Modal title="Ask a partner" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button>{f.title.trim().length < 3 || !f.to ? <span className="gh-hint" role="status">{!f.to ? "Choose the partner." : "Say what you need, in a few words."}</span> : null}<button type="button" className="nx-btn" disabled={!!busy || f.title.trim().length < 3 || !f.to} onClick={() => void save()}>Send request</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>The partner sees it on their list. Never include patient details.</p>
     <div className="nx-fields gh-fields">
       <Field label="Kind of request"><select value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })}>{["vaccination_request", "animal_followup", "sample_request", "service_gap"].map((k) => <option key={k} value={k}>{HANDOFF_KIND[k]}</option>)}</select></Field>
@@ -400,8 +406,10 @@ function ReportTab({ sample, p }: Ctx) {
 type Assignment = { programme_id: string; area_id: string; duty: string; organisation_id: string };
 const DUTY: Record<string, string> = { animal_followup: "Animal follow-ups", vaccination: "Dog vaccination", sample_collection: "Sample collection" };
 function SetupTab({ sample, p, caps, places, reloadProg }: Ctx & { reloadProg?: () => void }) {
-  const manage = caps.has("manage");
   const o = useOh<Overview>(sample, SAMPLE_OVERVIEW, () => call("oh_programme_overview", { p_programme: p.id, p_days: 30 }), `nx-pset:${p.id}`);
+  /* The role carries "manage", but the programme is managed only from a coordination or state cell (oh_can_manage): a
+     municipal lead of an independent programme was shown every setting and refused on each save. The server says. */
+  const manage = caps.has("manage") && (sample || !!o.data?.can_manage);
   const marks = useOh<Record<string, string>>(sample, {}, () => call("oh_partner_marks", { p_programme: p.id }), `nx-pmk:${p.id}`);
   const asg = useOh<Assignment[]>(sample, [{ programme_id: p.id, area_id: "a8", duty: "animal_followup", organisation_id: "o2" }], () => select<Assignment>("oh_assignments", { programme_id: p.id }, "programme_id,area_id,duty,organisation_id", 500), `nx-pasg:${p.id}`);
   const [partner, setPartner] = useState(false);
@@ -422,7 +430,7 @@ function SetupTab({ sample, p, caps, places, reloadProg }: Ctx & { reloadProg?: 
     <div className="gh-body is-narrow">
       {manage ? <Settings sample={sample} p={p} onSaved={() => reloadProg?.()} /> : <p className="nx-note"><span>Only the programme lead changes modules, settings, partners and areas. You can invite people to your own organisation below.</span></p>}
       {manage ? <Block title="Partners" note="Organisations taking part. A logo appears on the programme report." action={sample ? <TryLink sm quiet><Plus size={13} />Add a partner</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setPartner(true)}><Plus size={13} />Add a partner</button>}>
-        {d ? <ul className="gh-list">{d.partners.map((x) => <li key={x.id}><div><b>{x.name}</b><small>{KIND_LABEL[x.kind] ?? x.kind} · {showCount(x.members)} people{marks.data?.[x.id] ? " · logo set" : ""}</small></div><span className="gh-row-a"><Logo sample={sample} org={x.id} name={x.name} has={!!marks.data?.[x.id]} onDone={marks.reload} /></span></li>)}</ul> : <Skeleton rows={3} />}
+        {d ? <ul className="gh-list">{d.partners.map((x) => <li key={x.id}><div><b>{x.name}</b><small>{KIND_LABEL[x.kind] ?? x.kind} · {showCount(x.members)} {x.members === 1 ? "person" : "people"}{marks.data?.[x.id] ? " · logo set" : ""}</small></div><span className="gh-row-a"><Logo sample={sample} org={x.id} name={x.name} has={!!marks.data?.[x.id]} onDone={marks.reload} /></span></li>)}</ul> : <Skeleton rows={3} />}
       </Block> : null}
       {manage || caps.has("oversee") ? <Block title="Areas and assignments" note="Wards or localities the programme covers, and which partner answers for each duty there. A bite recorded in an area raises its animal follow-up with the assigned partner.">
         {d ? <ul className="gh-list">{areas.map((a) => <li key={a.area_id} style={{ gridTemplateColumns: "minmax(0, 1fr)" }}><div><b>{a.area}</b><small>{a.estimate ? `Estimate ${a.estimate.dogs} dogs, ${fmtDate(a.estimate.on, { day: "numeric", month: "short", year: "numeric" })}, ${a.estimate.source}` : "No dated estimate"}</small></div>
@@ -454,7 +462,10 @@ function Settings({ sample, p, onSaved }: { sample: boolean; p: Prog; onSaved: (
   const { busy, run } = useAct();
   const cfg = (m: string[], d: string, r: string) => { const c: Record<string, unknown> = { modules: m, followup_due_days: Number(d) || 3 }; if (p.config?.suppress_below) c.suppress_below = p.config.suppress_below; if (p.config?.alert_window_days) c.alert_window_days = p.config.alert_window_days; if (r) c.dog_revaccination_days = Number(r); return c; };
   const t = Number(target), rv = Number(revac);
-  const ok = t >= 1 && t <= 100 && (!revac || (rv >= 30 && rv <= 1095));
+  const dd = Number(due);
+  /* A target is a percentage; a follow-up needs at least a day (0 used to be accepted and silently saved as 3). */
+  const why = !(t >= 1 && t <= 100) ? "The target is a percentage from 1 to 100." : !(dd >= 1 && dd <= 30) ? "Days to answer a follow-up: 1 to 30." : revac && !(rv >= 30 && rv <= 1095) ? "Revaccination: 30 to 1095 days." : null;
+  const ok = !why;
   const save = async () => {
     const before = { p_programme: p.id, p_summary: p.summary ?? "", p_status: p.status, p_target: p.vaccination_target, p_config: p.config ?? {} };
     const r = await run("settings", () => call("oh_set_programme", { p_programme: p.id, p_summary: summary, p_status: status, p_target: t / 100, p_config: cfg(mods, due, revac) }), { ok: "Programme settings saved.", undo: () => call("oh_set_programme", before).then(() => onSaved()) });
@@ -470,7 +481,7 @@ function Settings({ sample, p, onSaved }: { sample: boolean; p: Prog; onSaved: (
         <Field label="Dog revaccination interval (days)" hint="Set by the programme's veterinary lead, 30 to 1095. Empty switches reminders off."><input inputMode="numeric" value={revac} onChange={(e) => setRevac(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="Off" /></Field>
         <Field label="Summary" wide><textarea value={summary} maxLength={600} onChange={(e) => setSummary(e.target.value)} /></Field>
       </div>
-      <div className="gh-acts" style={{ marginTop: 10 }}>{sample ? <TryLink sm>Save settings</TryLink> : <button type="button" className="nx-btn is-sm" disabled={!!busy || !ok} onClick={() => void save()}>Save settings</button>}<span className="gh-hint">Human counts below {p.config?.suppress_below ?? 5} are always hidden outside the treating facility.</span></div>
+      <div className="gh-acts" style={{ marginTop: 10 }}>{sample ? <TryLink sm>Save settings</TryLink> : <button type="button" className="nx-btn is-sm" disabled={!!busy || !ok} onClick={() => void save()}>Save settings</button>}<span className="gh-hint" role="status">{why ?? `Human counts below ${p.config?.suppress_below ?? 5} are always hidden outside the treating facility.`}</span></div>
     </Block>
   );
 }

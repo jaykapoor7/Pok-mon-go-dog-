@@ -7,7 +7,7 @@ import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, History, Messa
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
-import { PAGES } from "./nav";
+import { PAGES, PAGE_WS } from "./nav";
 import { useChannels, useLive } from "./live";
 import { animalLine, animalSearch } from "./animalLabel";
 import "./css/command.css";
@@ -100,7 +100,10 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
   const hits = useMemo<Hit[]>(() => {
     const l = q.trim().toLowerCase();
     const office = live.org?.source === "review_office", lab = live.org?.kind === "laboratory";
-    const pages = PAGES.filter((p) => (!p.office || !live.org || office) && (!p.lab || !live.org || lab)).filter((p) => !l || `${p.label} ${p.ws}`.toLowerCase().includes(l)).slice(0, l ? 6 : 8)
+    /* Only the workspaces this person works in (an official is not offered NGO pages); everything when signed out or in the sample. */
+    const mine = new Set(live.orgs.map((o) => o.workspace));
+    const pages = PAGES.filter((p) => (!p.office || !live.org || office) && (!p.lab || !live.org || lab)).filter((p) => !live.orgs.length || !PAGE_WS[p.ws] || mine.has(PAGE_WS[p.ws]))
+      .filter((p) => !l || `${p.label} ${p.ws} ${p.keywords ?? ""}`.toLowerCase().includes(l)).slice(0, l ? 6 : 8)
       .map((p): Hit => ({ id: p.href + p.ws, group: "Pages", label: p.label, detail: p.ws, href: p.href, icon: <p.icon size={14} /> }));
     const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/channels/${c}`, icon: <Hash size={14} /> }));
@@ -112,7 +115,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h) : [];
     const lately: Hit[] = l ? [] : recent.map((r) => ({ id: `r${r.href}`, group: "Recent", label: r.label, detail: r.detail, href: r.href, icon: KIND_ICON[r.kind] ?? <History size={14} /> }));
     return [...lately, ...records, ...acts, ...pages, ...channels, ...kaju];
-  }, [q, records, live.org, ngo, chans.rows, recent]);
+  }, [q, records, live.org, live.orgs, ngo, chans.rows, recent]);
 
   useEffect(() => { setAt(0); }, [q]);
   const go = (h: Hit | undefined) => { if (!h) return; keepRecent(h); onClose(); router.push(h.href); };

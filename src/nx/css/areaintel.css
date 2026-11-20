@@ -29,3 +29,10 @@
 .wta-card dl div { display: flex; justify-content: space-between; gap: 12px; }
 .wta-card dt { color: var(--ink-2); }
 .wta-card dd { margin: 0; color: var(--ink); font-weight: 500; text-align: right; }
+/* The map key: one swatch per colour the map draws (AreaIntel's MAP). Its rules went with src/oh/oh.css in #116, which
+   left the key as plain words that could not be read against the map. */
+.oh-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0 0; padding: 0; list-style: none; color: var(--ink-2); font-size: 12px; line-height: 16px; }
+.oh-legend li { display: inline-flex; align-items: center; gap: 8px; }
+.oh-legend i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.oh-legend i.sq { width: 12px; height: 12px; border-radius: 4px; }
+.oh-legend i.ring { background: none; box-shadow: 0 0 0 2px #d44c47; }

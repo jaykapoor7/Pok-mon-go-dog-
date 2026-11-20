@@ -307,7 +307,7 @@ p.nx-t3 { white-space: normal; } /* a sentence wraps; a cell value (span) stays 
   .nx-rec-acts { margin-left: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .nx-rec-acts .nx-btn { height: 36px; }
   .nx-tabs { padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
-  .nx-tab { white-space: nowrap; height: 44px; }
+  .nx-tab { flex: none; white-space: nowrap; height: 44px; } /* a tab keeps its words' width and the row scrolls; they used to shrink into each other */
   .nx-rec { grid-template-columns: minmax(0, 1fr); }
   .nx-rec > * { padding: 16px !important; border-left: 0 !important; border-bottom: 1px solid var(--line); grid-column: auto !important; }
   .nx-props { grid-template-columns: minmax(0, 1fr); }
@@ -598,6 +598,10 @@ a.nx-side-f:hover { color: var(--ink-2); background: var(--hover); }
 @keyframes nx-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .nx-spin { animation: none; } }
 @media (max-width: 640px) { .nx .nx-head .nx-btn.is-keep { display: inline-flex; margin-top: 12px; } .nx .nx-head:has(.is-keep) { flex-wrap: wrap; } }
+/* A period choice never shrinks under the sentence beside it (on a phone only "30 days" showed while the figures were
+   for 90); on a phone it takes its own row. */
+.nx-periods { flex: none; }
+@media (max-width: 640px) { .nx .nx-head:has(> .nx-periods) { flex-wrap: wrap; } }
 
 /* Direct message picker */
 .nx-people-pick { margin: 2px 8px 6px; padding: 6px; border-radius: 9px; background: var(--bg); box-shadow: var(--shadow); }

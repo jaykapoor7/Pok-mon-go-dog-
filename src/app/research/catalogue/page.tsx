@@ -36,7 +36,7 @@ export default async function DatasetsPage() {
                   <div><dt>Limitations</dt><dd><ul>{d.limitations.map((l) => <li key={l}>{l}</li>)}</ul></dd></div>
                 </dl>
               </details>
-              {d.access === "open" ? (surveys && surveys.length > 0 ? <a className="s4-btn is-primary" href={d.obtain.href}><Download size={16} aria-hidden /> {d.obtain.label}</a> : <p className="rs-note">No survey has been published yet, so there is nothing to download.</p>)
+              {d.access === "open" ? (surveys && surveys.length > 0 ? <a className="s4-btn is-primary" href={d.obtain.href}><Download size={16} aria-hidden /> {d.obtain.label}</a> : surveys === null ? <p className="rs-note">The list could not be read, so the download is not offered. Try again shortly.</p> : <p className="rs-note">No survey has been published yet, so there is nothing to download.</p>)
                 : d.access === "request" ? <a className="s4-btn is-line" href={d.obtain.href} rel="noopener noreferrer" target="_blank">{d.obtain.label} <ArrowUpRight size={15} aria-hidden /></a>
                 : <Link className="s4-btn is-line" href={d.obtain.href}>{d.obtain.label}</Link>}
             </article>

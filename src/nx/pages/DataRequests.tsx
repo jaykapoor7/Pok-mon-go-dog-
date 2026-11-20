@@ -31,8 +31,9 @@ function useRequests(filter: { org?: string } | null) {
     if (filter.org) q = q.eq("requester_org", filter.org);
     void q.then(({ data, error: e }) => { if (!alive) return; setError(e?.message ?? null); setRows(e ? [] : (data ?? []) as unknown as Req[]); });
     return () => { alive = false; };
+    /* !!filter too: signing in turns null into {} with no org, which used to leave the list unread (a skeleton for ever). */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter?.org, tick]);
+  }, [!!filter, filter?.org, tick]);
   return { rows, error, reload: useCallback(() => setTick((n) => n + 1), []) };
 }
 
