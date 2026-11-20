@@ -59,7 +59,7 @@ export function OrgMenu({ shown, ws, current }: { shown: Shown; ws: string; curr
     if (o.org_id === current?.org_id) { setOpen(false); return; }
     setGoing(o.org_id);
     live.pick(o.org_id);
-    router.push(homeOf(o.workspace, o.org_id));
+    router.push(homeOf(o.workspace, o.org_id, o.role));
   };
   const groups = ORDER.map((w) => ({ w, list: live.orgs.filter((o) => o.workspace === w) })).filter((g) => g.list.length);
 

@@ -24,7 +24,7 @@ export async function unlockOffline(scope:string,passphrase:string){
  const material=await crypto.subtle.importKey('raw',encoder.encode(passphrase),'PBKDF2',false,['deriveKey']);const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
  if(saved){try{const check=await decrypt<string>(key,saved.check,scope);if(check!==`StrayPaw offline:${scope}`)throw Error('Mismatch')}catch{throw Error('The passphrase did not unlock these records. Nothing was removed.')}}
  else{saved={scope,salt:b64(salt),check:await crypt(key,`StrayPaw offline:${scope}`,scope)};try{await tx('vault','readwrite',s=>s.add(saved!))}catch{if(await offlineVaultExists(scope))return unlockOffline(scope,passphrase);throw Error('The device could not create secure storage.')}}
- for(const k of [...keys.keys()])if(!k.endsWith(':online'))keys.delete(k);keys.set(scope,key);
+ for(const k of [...keys.keys()])if(!k.endsWith(':online')&&!k.endsWith(':device'))keys.delete(k);keys.set(scope,key);
  // Upgrade only this authenticated scope's older drafts, preserving original blobs.
  const old=await tx<(FieldDraft|Stored)[]>('drafts','readonly',s=>s.index('scope').getAll(scope));for(const record of old)if(!('encrypted'in record))await putDraft(record);
  // Cached record snapshots were only a convenience; encrypt this scope's old snapshot in place.
@@ -43,6 +43,41 @@ export async function startOnlineSession(scope:string){
   for(const store of ['drafts','synced']){const c=t.objectStore(store).index('scope').openCursor(IDBKeyRange.only(s));c.onsuccess=()=>{const cur=c.result;if(cur){cur.delete();cur.continue()}}}
   t.objectStore('vault').put({scope:s,salt:'',check});t.oncomplete=()=>{db.close();resolve()};t.onabort=t.onerror=()=>{db.close();reject(t.error??Error('Device storage unavailable'))}});
  keys.set(s,key);return s;
+}
+/* Field work without a PIN (the owner's choice, 20 November 2026). One key per person and organisation on this phone,
+   made once and kept in device storage as a non-extractable key: records are encrypted at rest, survive the app being
+   closed without signal, and send by themselves when there is signal. Anyone who can use this browser profile can open
+   them, so the phone's own screen lock is what protects them. The PIN-protected scope above stays for survey
+   collection and for field records kept before this change, which moveRecords brings across once. */
+export const deviceScope=(scope:string)=>`${scope}:device`;
+const deviceCheck=(s:string)=>`StrayPaw device:${s}`;
+export async function openDevice(scope:string):Promise<string>{
+ const s=deviceScope(scope);if(keys.has(s))return s;
+ const saved=await tx<(Vault&{key?:CryptoKey})|undefined>('vault','readonly',st=>st.get(s));
+ if(saved?.key){const ok=await decrypt<string>(saved.key,saved.check,s).then(v=>v===deviceCheck(s),()=>false);if(!ok)throw Error('This phone’s field storage could not be opened. Nothing was removed.');keys.set(s,saved.key);return s}
+ const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ const row={scope:s,salt:'',key,check:await crypt(key,deviceCheck(s),s)};
+ try{await tx('vault','readwrite',st=>st.add(row))}catch{const again=await tx<(Vault&{key?:CryptoKey})|undefined>('vault','readonly',st=>st.get(s));if(again?.key){keys.set(s,again.key);return s}throw Error('This phone could not set up field storage.')}
+ keys.set(s,key);
+ // The earlier per-page online sessions kept a key only in memory, so their rows can never be read again.
+ const o=onlineScope(scope),db=await open();
+ await new Promise<void>((resolve)=>{const t=db.transaction(['drafts','synced','vault'],'readwrite');for(const store of ['drafts','synced']){const c=t.objectStore(store).index('scope').openCursor(IDBKeyRange.only(o));c.onsuccess=()=>{const cur=c.result;if(cur){cur.delete();cur.continue()}}}t.objectStore('vault').delete(o);t.oncomplete=t.onabort=t.onerror=()=>{db.close();resolve()}});
+ return s;
+}
+/** Records kept for a scope, counted without opening them (to say that older records are waiting for their PIN). */
+export const keptCount=(scope:string)=>tx<number>('drafts','readonly',s=>s.index('scope').count(scope));
+/** Bring records from one scope to another, keeping each record's id (its request id, so a resend is still recognised).
+    Both scopes must be open. Receipts the moved records depend on (an intake their later steps follow) move with them.
+    One transaction: every record moves, or none does. Returns how many records moved. */
+export async function moveRecords(from:string,to:string,which:(d:FieldDraft)=>boolean=()=>true){
+ const list=(await readDrafts(from)).filter(which);if(!list.length)return 0;
+ const parents=new Set(list.map(d=>d.intakeRequest).filter(Boolean) as string[]);
+ const receipts=parents.size?(await readSynced(from)).filter(r=>parents.has(r.id)):[];
+ const drafts=await Promise.all(list.map(d=>storedDraft({...d,scope:to})));
+ const synced=await Promise.all(receipts.map(async r=>({id:r.id,scope:to,encrypted:await crypt(keyFor(to),{...r,scope:to},`${to}:synced:${r.id}`)})));
+ const db=await open();
+ await new Promise<void>((resolve,reject)=>{const t=db.transaction(['drafts','synced'],'readwrite');for(const r of drafts)t.objectStore('drafts').put(r);for(const r of synced)t.objectStore('synced').put(r);t.oncomplete=()=>{db.close();resolve()};t.onabort=t.onerror=()=>{db.close();reject(t.error??Error('The records stay where they were.'))}});
+ return drafts.length;
 }
 async function storedDraft(d:FieldDraft):Promise<Stored>{const {file,...data}=d;const packed={...data,...(file?{file:{type:file.type,body:b64(new Uint8Array(await file.arrayBuffer()))}}:{})};return{id:d.id,scope:d.scope,encrypted:await crypt(keyFor(d.scope),packed,`${d.scope}:drafts:${d.id}`)}}
 export async function readDrafts(scope:string):Promise<FieldDraft[]>{const key=keyFor(scope),rows=await tx<Stored[]>('drafts','readonly',s=>s.index('scope').getAll(scope));return Promise.all(rows.map(async r=>{if(!r.encrypted)throw Error('Older device records require the storage upgrade. Unlock again.');const d=await decrypt<Omit<FieldDraft,'file'>&{file?:{type:string;body:string}}>(key,r.encrypted,`${scope}:drafts:${r.id}`);if(d.scope!==scope||d.id!==r.id)throw Error('Offline record identity mismatch');return{...d,...(d.file?{file:new Blob([bytes(d.file.body)],{type:d.file.type})}:{})} as FieldDraft}))}

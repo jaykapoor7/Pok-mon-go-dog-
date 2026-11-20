@@ -110,7 +110,8 @@ function PrepCard({ p, signedIn, path, saved, onSave, onDismiss }: { p: Prep; si
   );
 }
 
-function Reply({ t, signedIn, onClose, onFill }: { t: Turn; signedIn: boolean; onClose: () => void; onFill: (text: string) => void }) {
+/** Kaju's answer to one turn: its words, sources, prepared changes with Confirm, and suggestions. Also used by the field home. */
+export function Reply({ t, signedIn, onClose, onFill }: { t: Turn; signedIn: boolean; onClose: () => void; onFill: (text: string) => void }) {
   const k = useKaju();
   const [saved, setSaved] = useState<Record<string, Saved>>({});
   const [gone, setGone] = useState<Set<string>>(new Set());

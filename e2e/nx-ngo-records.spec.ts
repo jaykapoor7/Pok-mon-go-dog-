@@ -134,12 +134,17 @@ test("Operations: care log and the two lanes sit beside the visits, with field m
   } else await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/ngo/field");
 });
 
-test("Field mode: the round on a phone, every action opening the live demo", async ({ page }) => {
+test("Field mode: Kaju first on a phone, every action opening the live demo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await open(page, "/ngo/field");
-  await expect(page.getByRole("heading", { name: "Your round" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening)/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What are you working on?" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Record an animal" })).toHaveAttribute("href", "/try");
-  const done = page.getByRole("link", { name: "Done" }).first();
-  await expect(done).toBeVisible();
-  expect((await done.boundingBox())!.height).toBeGreaterThanOrEqual(43);
+  /* Kaju answers field work from the round on the page, never with a drive it does not have, and its action opens the demo. */
+  await page.getByRole("button", { name: "Start vaccinations" }).click();
+  await expect(page.getByText(/There's no vaccination drive on today/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Record an animal to vaccinate" })).toHaveAttribute("href", "/try");
+  const row = page.locator(".fh-row").first();
+  await expect(row).toBeVisible();
+  expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
 });

@@ -21,7 +21,7 @@ export function NextHome() {
     if (!live.ready) return;
     if (!live.signedIn) { router.replace("/ngo/today"); return; }
     const o = live.org ?? live.orgs[0];
-    router.replace(o ? homeOf(o.workspace, o.org_id) : "/start");
+    router.replace(o ? homeOf(o.workspace, o.org_id, o.role) : "/start");
   }, [live.ready, live.signedIn, live.org, live.orgs, router]);
   return <div style={{ display: "grid", placeItems: "center", minHeight: "60vh", color: "#667085", font: "14px system-ui" }} role="status"><span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Loader2 size={16} className="nx-spin" />Opening your workspace…</span></div>;
 }

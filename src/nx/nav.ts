@@ -74,8 +74,16 @@ export const KAJU: NavItem[] = [
   { href: "/kaju/rules", label: "Rules & memory", icon: SlidersHorizontal },
 ];
 export const BUILT = new Set(["/ngo/today", "/ngo/operations", "/ngo/programmes", "/ngo/inbox", "/ngo/submissions", "/ngo/cases", "/ngo/animals", "/gov/overview", "/gov/programmes", "/gov/partners", "/gov/verification", "/gov/surveillance", "/gov/reports", "/health/today", "/health/patients", "/health/appointments", "/health/care", "/health/procedures", "/health/followups", "/health/referrals", "/health/facilities", "/health/surveillance", "/health/testing", "/health/results", "/health/quality", "/health/bites", "/health/pep", "/health/samples", "/research/datasets", "/research/explore", "/research/maps", "/research/studies", "/research/reports", "/kaju", "/kaju/missions", "/kaju/automations", "/kaju/approvals", "/kaju/history", "/kaju/insights", "/kaju/rules", "/ngo/team", "/ngo/training", "/ngo/import", "/ngo/settings"]);
+/** The Field Team: the people of an NGO who work on the street. `field_worker` is the role a lead gives on the Team page;
+    `member` is the field role in the ABC role model (src/lib/abc.ts AbcRole; Evidence gives both the same work) and the
+    sample field worker's. Leads, admins, coordinators and veterinarians keep the organisation's Today. */
+export const isFieldTeam = (o: { workspace: string; role: string } | null | undefined) => !!o && o.workspace === "ngo" && (o.role === "field_worker" || o.role === "member");
+/** The Field Team's home: their own day, with Kaju (src/nx/pages/ngo/Field.tsx). */
+export const FIELD_HOME = "/ngo/field";
+/** The field home first, then the organisation's pages; the organisation's Today stays one tap away as "Team today". */
+export const FIELD_NAV: NavItem[] = [{ href: FIELD_HOME, label: "My day", icon: Home }, ...NGO.map((i) => (i.href === "/ngo/today" ? { ...i, label: "Team today", icon: Users } : i))];
 /** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
-export const homeOf = (w: string, id: string) => (w === "ngo" ? "/ngo/today" : w === "government" ? "/gov/overview" : w === "healthcare" ? "/health/today" : w === "research" ? "/research/datasets" : "/home");
+export const homeOf = (w: string, id: string, role?: string | null) => (w === "ngo" ? (isFieldTeam({ workspace: w, role: role ?? "" }) ? FIELD_HOME : "/ngo/today") : w === "government" ? "/gov/overview" : w === "healthcare" ? "/health/today" : w === "research" ? "/research/datasets" : "/home");
 export const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
 
 /** Built pages with the workspace they belong to, for search. */

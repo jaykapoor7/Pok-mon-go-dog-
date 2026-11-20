@@ -370,10 +370,10 @@ export function OpsEvents({ caseId, dogId, readOnly, role, userId, title = "Care
 }
 
 /** A versioned record of one care or movement step. Required fields follow the step and any organisation policy. */
-export function LifecycleForm({ onSave, onCancel, events = [], policies = [], coordinator = false, submitLabel = "Save operation record" }: { onSave: (kind: OperationKind, data: LifecycleData, policyId: string | null, requestId: string) => Promise<void>; onCancel: () => void; events?: OperationEvent[]; policies?: WorkflowPolicy[]; coordinator?: boolean; submitLabel?: string }) {
+export function LifecycleForm({ onSave, onCancel, events = [], policies = [], coordinator = false, submitLabel = "Save operation record", initialKind = "capture" }: { onSave: (kind: OperationKind, data: LifecycleData, policyId: string | null, requestId: string) => Promise<void>; onCancel: () => void; events?: OperationEvent[]; policies?: WorkflowPolicy[]; coordinator?: boolean; submitLabel?: string; /** The record type it opens on (Kaju on the field home opens a release as a release). */ initialKind?: OperationKind }) {
   const request = useRef(typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now())), saving = useRef(false);
   const fresh = (): LifecycleData => ({ template: "lifecycle-v1", occurredAt: new Date().toISOString(), notes: "" });
-  const [kind, setKind] = useState<OperationKind>("capture");
+  const [kind, setKind] = useState<OperationKind>(initialKind);
   const [d, setD] = useState<LifecycleData>(fresh);
   const [policy, setPolicy] = useState("");
   const [busy, setBusy] = useState(false);

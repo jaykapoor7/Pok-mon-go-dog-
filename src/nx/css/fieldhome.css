@@ -1,0 +1,117 @@
+/* The field home (src/nx/pages/ngo/Field.tsx): a field worker's day with Kaju. Builds on field mode's tokens and parts
+   (src/nx/field.css, fm-); only the home's own pieces are here (fh-). DESIGN.md 4.0: white ground, a soft fill marks a
+   surface, no lines around cards (only controls keep one), blue for the one main action and selection, amber for late,
+   green for done. Type 12/14/16/20/32; spacing 4/8/12/16/24; radii 12/16/full; touch targets 44-48px on phones.
+   Motion: the answer rises in (240ms); rows turn their chevron; nothing moves under reduced motion. */
+
+/* Small text on a filled surface takes the deeper grey, so it stays above 4.5:1 (WCAG 1.4.3). */
+.nx:not([data-theme="dark"]) :is(.fh-kaju, .fh-quick, .fh-places, .fh-legacy) { --fm-mute: #586174; }
+
+.nx .fh-sr { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ── Who and when ─────────────────────────────────────────────────── */
+.nx .fh-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eye net" "h1 h1" "sum sum"; column-gap: 12px; align-items: center; }
+.nx .fh-head .fm-eyebrow { grid-area: eye; }
+.nx .fh-head .fm-net { grid-area: net; }
+.nx .fh-head h1 { grid-area: h1; margin-top: 8px; font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -.02em; color: var(--fm-ink); }
+.nx .fh-head .fm-sum { grid-area: sum; margin-top: 4px; font-size: 16px; line-height: 24px; color: var(--fm-body); }
+
+/* ── Kaju ─────────────────────────────────────────────────────────── */
+.nx .fh-kaju { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--fm-fill); }
+.nx .fh-kaju-h { display: flex; align-items: center; gap: 12px; }
+.nx .fh-kaju-h h2 { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; color: var(--fm-ink); }
+.nx .fh-compose { position: relative; }
+.nx .fh-compose textarea { display: block; width: 100%; min-height: 96px; padding: 12px 64px 12px 16px; border: 0; border-radius: 12px; background: var(--fm-raise); box-shadow: inset 0 0 0 1px var(--fm-line); color: var(--fm-ink); font: inherit; font-size: 16px; line-height: 24px; resize: none; }
+.nx .fh-compose textarea::placeholder { color: var(--fm-mute); opacity: 1; }
+.nx .fh-compose textarea:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; box-shadow: inset 0 0 0 1px var(--fm-blue); }
+.nx .fh-send { position: absolute; right: 8px; bottom: 8px; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-blue); color: var(--fm-on-blue); transition: background .15s, opacity .15s, transform .1s; }
+.nx .fh-send:disabled { opacity: .4; cursor: default; }
+.nx .fh-send:not(:disabled):active { transform: scale(.94); }
+.nx .fh-send:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; }
+.nx .fh-hint { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+.nx .fh-out:empty { display: none; }
+
+/* The answer: what was said, then Kaju's words, the screen to open, and where it came from. */
+.nx .fh-reply { display: grid; gap: 12px; animation: fh-in .24s var(--fm-ease) both; }
+@keyframes fh-in { from { opacity: 0; transform: translateY(8px); } }
+.nx .fh-you { justify-self: end; max-width: 88%; display: flex; align-items: flex-start; gap: 4px; padding: 4px 4px 4px 12px; border-radius: 12px; background: var(--fm-blue-soft); color: var(--fm-ink); font-size: 14px; line-height: 20px; }
+.nx .fh-you > span:not(.fh-sr) { padding: 4px 0; overflow-wrap: anywhere; }
+.nx .fh-x { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--fm-body); }
+.nx .fh-ans { display: grid; gap: 16px; padding: 16px; border-radius: 12px; background: var(--fm-raise); }
+.nx .fh-ans-t { font-size: 16px; line-height: 24px; color: var(--fm-ink); }
+.nx .fh-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .fh-acts .fm-btn { height: 48px; padding: 0 16px; font-size: 16px; }
+.nx .fh-acts .fm-btn:not(.is-go) { background: var(--fm-fill); }
+.nx .fh-src { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+/* Kaju's own answers keep their look, inside this card. */
+.nx .fh-ans.ak { margin: 0; padding: 16px; background: var(--fm-raise); }
+
+/* ── Shortcuts: three tiles, the first records an animal, the others ask Kaju ── */
+.nx .fh-quick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.nx .fh-tile { display: grid; align-content: space-between; justify-items: start; gap: 12px; min-height: 96px; padding: 16px; border-radius: 12px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; line-height: 20px; font-weight: 600; text-align: left; transition: background .15s, transform .1s; }
+.nx .fh-tile svg { color: var(--fm-blue); }
+.nx .fh-tile:active { transform: scale(.98); }
+.nx .fh-tile:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; }
+
+/* ── Your work: one row per stop, hairlines between, nothing boxed ── */
+.nx .fh-work { display: grid; gap: 4px; }
+.nx .fh-more { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--fm-blue); font-size: 14px; font-weight: 500; }
+.nx .fh-list { display: grid; }
+.nx .fh-stop + .fh-stop { border-top: 1px solid var(--fm-line); }
+.nx .fh-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 20px; align-items: center; gap: 16px; width: 100%; min-height: 72px; padding: 12px 0; text-align: left; color: var(--fm-body); }
+.nx .fh-row:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; border-radius: 8px; }
+.nx .fh-row-i { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-blue-soft); color: var(--fm-blue); }
+.nx .fh-row-i.is-late { background: var(--fm-warn-soft); color: var(--fm-warn-ink); }
+.nx .fh-row-t { display: grid; min-width: 0; }
+.nx .fh-row-t b { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .fh-row-t small { font-size: 14px; line-height: 20px; color: var(--fm-mute); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.nx .fh-row-c { color: var(--fm-mute); transition: transform .16s var(--fm-ease); }
+.nx .fh-row[aria-expanded="true"] .fh-row-c { transform: rotate(180deg); }
+.nx .fh-stop-b { display: grid; gap: 12px; padding: 0 0 16px 56px; }
+.nx .fh-all { justify-self: start; min-height: 44px; color: var(--fm-blue); font-size: 14px; font-weight: 500; }
+.nx .fh-skel { display: grid; gap: 8px; }
+.nx .fh-skel i { display: block; height: 72px; border-radius: 12px; background: var(--fm-fill); }
+
+/* Older records waiting for their PIN, once. */
+.nx .fh-legacy { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 16px; border-radius: 12px; background: var(--fm-warn-soft); color: var(--fm-ink); }
+.nx .fh-legacy h2 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); }
+.nx .fh-legacy p { margin-top: 4px; }
+.nx .fh-legacy form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-top: 12px; }
+.nx .fh-legacy .nx-field { flex: 1 1 160px; }
+.nx .fh-legacy .fm-err { margin-top: 8px; }
+
+/* ── Records: four places, one tap each ───────────────────────────── */
+.nx .fh-places { display: grid; gap: 8px; }
+.nx .fh-places h2 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); }
+.nx .fh-places ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.nx .fh-places a { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 12px 0 16px; border-radius: 12px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; line-height: 20px; font-weight: 500; transition: background .15s; }
+.nx .fh-places a > span { flex: 1 1 auto; min-width: 0; }
+.nx .fh-places a > svg:first-child { color: var(--fm-blue); flex: none; }
+.nx .fh-places a > svg:last-child { color: var(--fm-mute); flex: none; }
+.nx .fh-places a:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; }
+
+/* The record screen opened by Kaju says what it filled in. */
+.nx .fh-told { display: flex; align-items: flex-start; gap: 8px; }
+.nx .fh-told > :first-child { flex: none; }
+
+@media (hover: hover) {
+  .nx .fh-tile:hover, .nx .fh-places a:hover { background: var(--fm-fill-2); }
+  .nx .fh-send:not(:disabled):hover { background: var(--fm-blue-2); }
+  .nx .fh-x:hover { background: var(--fm-fill); }
+  .nx .fh-row:hover .fh-row-t b { text-decoration: underline; text-underline-offset: 2px; }
+  .nx .fh-acts .fm-btn:not(.is-go):hover { background: var(--fm-fill-2); }
+}
+
+/* ── Phone ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .nx .fh-stop-b { padding-left: 0; }
+  .nx .fh-acts .fm-btn { flex: 1 1 100%; }
+  .nx .fh-x { width: 44px; height: 44px; margin: -4px -4px -4px 0; }
+  .nx .fh-tile { padding: 12px; }
+  .nx .fh-places ul { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx .fh-reply { animation: none; }
+  .nx .fh-send, .nx .fh-tile, .nx .fh-row-c, .nx .fh-places a { transition: none; }
+}

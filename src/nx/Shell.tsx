@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
-import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
+import { FIELD_NAV, GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf, isFieldTeam } from "./nav";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
 import { OrgMenu } from "./OrgMenu";
@@ -118,18 +118,20 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const cur = (ws !== "ngo" && ws !== "kaju" ? want : null) ?? live.org;
   const lab = live.org ? cur?.kind === "laboratory" : path.startsWith("/health/samples") || ["/health/testing", "/health/results", "/health/quality"].some((p) => path.startsWith(p));
   const vet = live.org ? cur?.kind === "veterinary" : VET_PATHS.some((p) => path.startsWith(p));
-  const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? (cur?.source === "vet_clinic" ? CLINIC_VET : VET) : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : NGO).filter((i) => !i.office || !live.org || office);
+  /* A field worker's NGO menu starts with their own day (src/nx/nav.ts isFieldTeam). */
+  const field = isFieldTeam(live.orgFor("ngo"));
+  const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? (cur?.source === "vet_clinic" ? CLINIC_VET : VET) : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : field ? FIELD_NAV : NGO).filter((i) => !i.office || !live.org || office);
   const sampleOrg = ws === "gov" ? GOV_ORG : ws === "health" ? (vet ? { name: "Kind Hour", short: "KH", kind: "Healthcare · Veterinary" } : lab ? { name: "Reference Rabies Diagnostic Laboratory", short: "RL", kind: "Healthcare · Laboratory" } : CLINIC) : ws === "research" ? { name: "Programme Epidemiology Unit", short: "PE", kind: "Research" } : ORG;
   const org = cur ? { name: cur.name, short: ((ws) => (ws.length > 1 ? ws.map((w) => w[0]).join("") : (ws[0] ?? "").slice(0, 2)).slice(0, 2).toUpperCase())((cur.short_name ?? cur.name).split(/[^A-Za-z0-9]+/).filter(Boolean)), kind: vet ? "Healthcare · Veterinary" : WS_LABEL[cur.workspace] ?? cur.kind } : sampleOrg;
   const me = live.org && live.userName ? live.userName.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() : ME.initials;
   const CHANNEL = live.org ? `/channels/${chans.rows?.[0]?.name ?? "general"}` : "/channels/abc-ward-12";
   const unreadTotal = Object.entries(unreadMap).reduce((a, [id, n]) => a + (path === `/channels/${chanName(id)}` ? 0 : n), 0);
   const unread = live.org ? (unreadTotal ? String(unreadTotal) : undefined) : "2";
-  const home = live.org ? homeOf(live.org.workspace, live.org.org_id) : ws === "gov" ? "/gov/overview" : ws === "health" ? "/health/today" : ws === "research" ? "/research/datasets" : "/ngo/today";
+  const home = live.org ? homeOf(live.org.workspace, live.org.org_id, live.org.role) : ws === "gov" ? "/gov/overview" : ws === "health" ? "/health/today" : ws === "research" ? "/research/datasets" : "/ngo/today";
 
   /* The phone: the role's own bar, "+" for the records it makes, and a Menu sheet with the rest (docs/rebuild/MOBILE.md). */
   const homeWs = ws === "kaju" ? (live.org?.workspace === "government" ? "gov" : live.org?.workspace === "healthcare" ? "health" : live.org?.workspace === "research" ? "research" : "ngo") : ws;
-  const kind: PhoneKind = homeWs === "gov" ? (office ? "office" : "gov") : homeWs === "health" ? (vet ? "vet" : lab ? "lab" : "clinic") : homeWs === "research" ? "research" : "ngo";
+  const kind: PhoneKind = homeWs === "gov" ? (office ? "office" : "gov") : homeWs === "health" ? (vet ? "vet" : lab ? "lab" : "clinic") : homeWs === "research" ? "research" : field ? "field" : "ngo";
   const [menu, setMenu] = useState(false), [plus, setPlus] = useState(false);
   const closeMenu = useCallback(() => setMenu(false), []), closePlus = useCallback(() => setPlus(false), []);
   useEffect(() => { setMenu(false); setPlus(false); }, [path]);
@@ -208,7 +210,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       <ToastHost />
       <ConversationHost />
       {path.startsWith("/kaju") || !dockUsed ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
-      <PhoneBar tabs={phoneTabs(kind, home)} on={on} plus={kind === "ngo" || kind === "clinic" || kind === "vet"} onPlus={() => setPlus(true)} onMenu={() => setMenu(true)} menuOpen={menu} unread={unread} />
+      <PhoneBar tabs={phoneTabs(kind, home)} on={on} plus={kind === "ngo" || kind === "field" || kind === "clinic" || kind === "vet"} onPlus={() => setPlus(true)} onMenu={() => setMenu(true)} menuOpen={menu} unread={unread} />
       <PlusSheet open={plus} onClose={closePlus} kind={kind} onKaju={() => { if (path.startsWith("/kaju")) router.push("/kaju"); else setKaju(true); }} />
       <PhoneMenu open={menu} onClose={closeMenu} on={on} nav={nav} more={ws === "ngo" && !inChannel ? NGO_MORE : []} convs={convs} newConv={() => newConversation({ kind: "message" })}
         org={<OrgMenu shown={{ ...org, kind: ws === "kaju" ? "Kaju" : org.kind }} ws={ws} current={cur ?? null} />} theme={theme} flip={flip}

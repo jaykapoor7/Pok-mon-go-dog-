@@ -12,13 +12,15 @@ import "./css/phone.css";
    records the role makes, and a Menu sheet that holds everything else the sidebar has. Nothing here renders on a
    desktop: the bar and both sheets are phone-only in phone.css. */
 
-export type PhoneKind = "ngo" | "clinic" | "lab" | "vet" | "gov" | "office" | "research";
+export type PhoneKind = "ngo" | "field" | "clinic" | "lab" | "vet" | "gov" | "office" | "research";
 type Tab = { href: string; label: string; icon: typeof Home };
 
 /** The role's daily places, in the order a thumb reaches them. Never a page from another workspace. */
 export function phoneTabs(kind: PhoneKind, home: string): Tab[] {
   switch (kind) {
     case "ngo": return [{ href: home, label: "Today", icon: Home }, { href: "/ngo/cases", label: "Cases", icon: ClipboardList }, { href: "/ngo/animals", label: "Animals", icon: PawPrint }];
+    /* A field worker: their own day with Kaju, then the records they work on. */
+    case "field": return [{ href: home, label: "My day", icon: Home }, { href: "/ngo/cases", label: "Cases", icon: ClipboardList }, { href: "/ngo/animals", label: "Animals", icon: PawPrint }];
     case "clinic": return [{ href: home, label: "Today", icon: Home }, { href: "/health/bites", label: "Bites", icon: ClipboardList }, { href: "/health/pep", label: "PEP", icon: Syringe }];
     case "lab": return [{ href: home, label: "Queue", icon: Home }, { href: "/health/samples", label: "Samples", icon: FlaskConical }, { href: "/health/results", label: "Results", icon: FileCheck2 }];
     case "vet": return [{ href: home, label: "Today", icon: Home }, { href: "/health/patients", label: "Patients", icon: PawPrint }, { href: "/health/procedures", label: "Procedures", icon: Scissors }];
@@ -30,6 +32,8 @@ export function phoneTabs(kind: PhoneKind, home: string): Tab[] {
 
 /** What "+" offers: Kaju first, then the records this role makes. Roles that make no records get no "+". */
 export function phoneActions(kind: PhoneKind): { href: string; label: string; detail: string; icon: typeof Home }[] {
+  /* The field home is field mode, so a field worker's "+" does not offer it again. */
+  if (kind === "field") return phoneActions("ngo").filter((a) => a.href !== "/ngo/field");
   if (kind === "ngo") return [
     { href: "/ngo/field?record=1", label: "Record an animal", detail: "Photo, place and what you saw, works offline", icon: Camera },
     { href: "/ngo/cases/new", label: "Open a case", detail: "A rescue or a report that needs the team", icon: ClipboardList },

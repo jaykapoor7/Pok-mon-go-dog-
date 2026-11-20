@@ -1,19 +1,22 @@
 import { expect, test, type Request } from "@playwright/test";
 
 /* Scenario 13, end to end in a phone browser against the staging database: a field worker records an animal with no
-   signal, the record waits on the phone encrypted, the first send loses the server's answer after the server has saved
-   it, and the retry with the same request id is answered from the first save instead of creating a second animal.
+   signal, the record waits on the phone encrypted (with this phone's own key; there is no PIN since 20 Nov 2026), it
+   sends by itself when the signal is back, that first send loses the server's answer after the server has saved it,
+   and the retry with the same request id is answered from the first save instead of creating a second animal.
 
    It WRITES one provisional animal ("Offline check") and its case on staging's sample NGO. The app never deletes a
    field intake (its operational event is an audit record), so the rows are cleared afterwards with
    docs/rebuild/sql/STAGING_cleanup_offline_checks.sql. It never runs in the read-only demo suite. Off unless
    E2E_STAGING_WRITES=1, against a build pointed at staging where the sample accounts can sign in:
 
-     E2E_STAGING_WRITES=1 E2E_BASE_URL=http://localhost:3100 npx playwright test e2e/field-offline-staging.spec.ts --project=mobile */
+     E2E_STAGING_WRITES=1 E2E_BASE_URL=http://localhost:3100 npx playwright test e2e/field-offline-staging.spec.ts --project=mobile
+
+   A local build has no sample password; E2E_DEMO_SESSION_ORIGIN=https://demo.straypaw.org signs in through that
+   deployment's sample sign-in instead (the session is for the same staging database). */
 test.skip(process.env.E2E_STAGING_WRITES !== "1", "Writes on staging; needs E2E_STAGING_WRITES=1 and a build pointed at staging");
 test.setTimeout(240_000);
 
-const PIN = "246810";
 // A 1×1 JPEG: enough for the photo step, the encrypted draft and the upload.
 const JPEG = Buffer.from("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP////////////////////////////////////////////////////////////////////////////////////8AAAsIAAEAAQEBEQD/xAAUAAEAAAAAAAAAAAAAAAAAAAAD/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAAPwBH/9k=", "base64");
 
@@ -24,25 +27,24 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "sp.firstday.v1", "sp.firstday.offer.v1", "sp.onboard.done"]) localStorage.setItem(k, "1"); });
 
   // The One Health field worker is not on /try's list; the sign-in asks for that sample account instead.
-  await page.route("**/api/demo/session", (r) => r.continue({ postData: JSON.stringify({ role: "oh-field" }) }));
+  const origin = process.env.E2E_DEMO_SESSION_ORIGIN;
+  await page.route("**/api/demo/session", async (r) => {
+    const postData = JSON.stringify({ role: "oh-field" });
+    if (!origin) return r.continue({ postData });
+    const res = await r.fetch({ url: `${origin}/api/demo/session`, postData });
+    await r.fulfill({ response: res });
+  });
   await page.goto("/try");
-  await page.getByRole("button", { name: /NGO coordinator/ }).first().click();
+  await page.getByRole("button", { name: /^NGO/ }).first().click();
   await page.waitForURL(/\/ngo\//, { timeout: 90_000 });
 
   await page.goto("/ngo/field");
-  await expect(page.getByRole("heading", { name: "Your round" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening)/ })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "What are you working on?" })).toBeVisible();
 
-  // Choose to work offline and set this phone's PIN.
-  await page.locator(".fm-net").click();
-  await page.getByRole("switch", { name: "Work offline" }).click();
-  await page.getByLabel("New PIN").fill(PIN);
-  await page.getByLabel("Repeat the PIN").fill(PIN);
-  await page.getByRole("button", { name: "Set the PIN" }).click();
-  await expect(page.getByRole("heading", { name: "Your round" })).toBeVisible({ timeout: 30_000 });
-
-  // No signal from here on.
+  // No signal from here on. Nothing to switch on and no PIN: the phone keeps records by itself.
   await context.setOffline(true);
-  await expect(page.locator(".fm-net")).toContainText(/Offline|No signal/);
+  await expect(page.locator(".fm-net")).toContainText("No signal");
 
   // One screen: photo, why, where (found by the phone), details folded away, one Save.
   await page.getByRole("button", { name: /Record an animal/ }).click();
@@ -55,13 +57,13 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
   await sheet.getByText("More about the dog").click();
   await sheet.getByLabel("Name or tag, if it has one").fill("Offline check");
   await sheet.getByLabel("Anything to add?").fill(marker);
-  await expect(sheet.getByText("Kept on this phone, locked with your PIN, until you send it.")).toBeVisible();
+  await expect(sheet.getByText("No signal right now. It stays on this phone and sends by itself when the signal is back.")).toBeVisible();
   await sheet.getByRole("button", { name: "Save" }).click();
   await expect(sheet).toBeHidden();
 
   const phone = page.getByRole("region", { name: "On this phone" });
   await expect(phone).toContainText("1 record not sent yet");
-  await expect(phone.getByRole("button", { name: /Waiting/ })).toBeDisabled();
+  await expect(phone.getByRole("button", { name: /Sends when there's signal/ })).toBeDisabled();
 
   // What sits in the browser's storage is ciphertext, not the words typed.
   const stored = await page.evaluate(() => new Promise<string>((resolve, reject) => {
@@ -92,9 +94,8 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
     await route.fulfill({ response: res });
   });
 
+  // Signal back: the record sends by itself; nobody presses Send.
   await context.setOffline(false);
-  await expect(page.getByText(/Signal is back\. 1 record waits to be sent\./)).toBeVisible();
-  await phone.getByRole("button", { name: "Send it" }).click();
 
   // The failure is shown on the record itself, with a way to try again; nothing was removed from the phone.
   const draft = phone.locator("details.fm-draft");
