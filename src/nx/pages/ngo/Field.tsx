@@ -358,7 +358,7 @@ function CaseStop({ c, animal, online, started, busy, drafted, onStart, onNote, 
   const place = [shortCode(c.case_code), animal, c.zone].filter(Boolean) as string[];
   return (
     <li className="fm-stop">
-      <div className="fm-stop-t"><b><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></b>
+      <div className="fm-stop-t"><b><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" && c.condition_class !== "Other" ? c.condition_class : c.title ?? "Case"}</Link></b>
         <span className="fm-meta"><span className={`fm-tag ${started ? "is-on" : ""}`}>{started ? "Started" : "Open"}</span>{place.length ? place.map((x, i) => <span key={`${x}${i}`}>{x}</span>) : <span>Animal and place not recorded</span>}</span></div>
       <div className="fm-acts">
         {!started ? <button type="button" className="fm-btn" disabled={!online || busy} onClick={onStart}><Play size={16} aria-hidden />Start</button> : null}

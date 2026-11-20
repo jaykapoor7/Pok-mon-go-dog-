@@ -109,12 +109,15 @@ function Visits({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Reac
   const load = useCallback(async () => { if (!ngo) return; try { setRows(await loadVisits(ngo.org_id)); setErr(null); } catch (e) { setRows([]); setErr(errText(e)); } }, [ngo]);
   useEffect(() => { void load(); }, [load]);
   const sample = !ngo;
+  /* A link can open the list on one of its views (Today's "Visits overdue" opens ?show=late). */
+  const [view, setView] = useState("soon");
+  useEffect(() => { const s = new URLSearchParams(window.location.search).get("show"); if (s) setView(s); }, []);
   const list = useMemo<Visit[]>(() => [...(sample ? (VISITS_OPS as Visit[]).map((v) => ({ ...v, animal: sampleAnimal(v.animal) })) : rows ?? [])].sort((a, b) => ORDER.indexOf(a.day) - ORDER.indexOf(b.day) || a.place.localeCompare(b.place)), [sample, rows]);
   const byPlace = useMemo(() => { const m = new Map<string, number>(); for (const v of list) if (["Overdue", "Today", "Tomorrow"].includes(v.day)) m.set(v.place, (m.get(v.place) ?? 0) + 1); return [...m].sort((a, b) => b[1] - a[1]); }, [list]);
   const overdue = list.filter((v) => v.day === "Overdue").length, today = list.filter((v) => v.day === "Today").length;
   const views: RView<Visit>[] = [{ id: "soon", label: "Due by tomorrow", test: (v) => ["Overdue", "Today", "Tomorrow"].includes(v.day) }, { id: "late", label: "Overdue", test: (v) => v.day === "Overdue" }, { id: "week", label: "Next 7 days", test: (v) => v.day !== "Imported" }, ...(list.some((v) => v.day === "Imported") ? [{ id: "imp", label: "Imported, never confirmed", test: (v: Visit) => v.day === "Imported" }] : [])];
   return (
-    <RecordList id="visits" title="Operations" sample={sample} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.what} columns={vCols} views={views} search={(r) => `${r.what} ${r.place} ${r.who} ${r.animal ?? ""} ${r.case ?? ""}`} placeholder="Place, person, animal"
+    <RecordList id="visits" title="Operations" sample={sample} view={views.some((x) => x.id === view) ? view : "soon"} onView={setView} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.what} columns={vCols} views={views} search={(r) => `${r.what} ${r.place} ${r.who} ${r.animal ?? ""} ${r.case ?? ""}`} placeholder="Place, person, animal"
       sub={sample || rows ? <><b className="num">{today}</b> {today === 1 ? "visit" : "visits"} today{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}. {byPlace.length && byPlace[0][1] > 1 ? <>Busiest place: <b>{byPlace[0][0]}</b> ({byPlace[0][1]} due by tomorrow).</> : null}</> : "Reading field visits…"}
       action={action} above={tabs} loading={!sample && rows === null} error={err} onRetry={() => void load()} hrefOf={(r) => r.caseHref ?? r.animalHref}
       empty={{ none: "No visits due in the next 7 days", hint: "Follow-ups scheduled on cases appear here." }}

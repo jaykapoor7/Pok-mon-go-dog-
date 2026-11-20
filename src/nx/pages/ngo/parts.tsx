@@ -171,16 +171,18 @@ function OutcomeForm({ busy, dueAfter, onCancel, onSubmit }: { busy: boolean; du
   const [resolution, setResolution] = useState<CaseResolution>("treated");
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
-  const ok = note.trim().length >= 8;
+  /* Closing as treated, sterilised or rescued needs a photo after care: the database refuses the close without one
+     (update_case_status), so the form asks for it instead of calling it optional. */
+  const ok = note.trim().length >= 8 && !!photo;
   return (
     <form className="nr-sheet" onSubmit={(e) => { e.preventDefault(); if (ok) onSubmit({ resolution, note: note.trim(), photo }); }}>
       <fieldset className="nr-radios"><legend>What was done</legend>
         {(["treated", "sterilized", "rescued"] as CaseResolution[]).map((r) => <label key={r}><input type="radio" name="res" checked={resolution === r} onChange={() => setResolution(r)} /><span>{r === "treated" ? "Treated" : r === "sterilized" ? "Sterilised" : "Rescued"}</span></label>)}
       </fieldset>
       <Field label="Outcome, in your words" hint="Recorded with your name and today's date. A typed note is a report, not a clinician's sign-off."><textarea required minLength={8} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What happened, where the animal is now, anything the next person needs to know" /></Field>
-      <div className="nr-file"><FilePick label={photo ? "Change the photo" : "Photo after care (optional)"} accept="image/*" onFiles={(f) => setPhoto(f[0] ?? null)} />{photo ? <span className="nx-t3">{photo.name} <button type="button" className="nr-link" onClick={() => setPhoto(null)}>Remove</button></span> : <span className="nx-t3">Stays private to your organisation.</span>}</div>
+      <div className="nr-file"><FilePick label={photo ? "Change the photo" : "Photo after care"} accept="image/*" onFiles={(f) => setPhoto(f[0] ?? null)} />{photo ? <span className="nx-t3">{photo.name} <button type="button" className="nr-link" onClick={() => setPhoto(null)}>Remove</button></span> : <span className="nx-t3">Stays private to your organisation.</span>}</div>
       {dueAfter}
-      <div className="nr-acts"><button type="submit" className="nx-btn is-sm" disabled={busy || !ok}>Record outcome and close…</button><button type="button" className="nx-btn is-quiet is-sm" onClick={onCancel}>Cancel</button>{!ok && note ? <span className="nx-t3">A few more words, please.</span> : null}</div>
+      <div className="nr-acts"><button type="submit" className="nx-btn is-sm" disabled={busy || !ok}>Record outcome and close…</button><button type="button" className="nx-btn is-quiet is-sm" onClick={onCancel}>Cancel</button>{!ok && (note || photo) ? <span className="nx-t3">{note.trim().length < 8 ? "A few more words, please." : "Add the photo after care."}</span> : null}</div>
     </form>
   );
 }
@@ -248,7 +250,7 @@ function FollowupForm({ busy, onCancel, onSave, initialDue, initialNote = "" }: 
 export function FollowupList({ items, onChanged, sample, markable }: { items: CaseFollowupRow[]; onChanged: () => Promise<unknown> | unknown; sample?: boolean; /** Follow-ups not on a case can only be deleted: the status function works through the case. */ markable?: (f: CaseFollowupRow) => boolean }) {
   const { busy, run } = useAct();
   const fus = [...items].sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at));
-  if (!fus.length) return <p className="nr-quiet">No follow-up scheduled on this case.</p>;
+  if (!fus.length) return <p className="nr-quiet">{markable ? "No follow-up scheduled for this animal." : "No follow-up scheduled on this case."}</p>;
   const act = (f: CaseFollowupRow, s: "done" | "missed" | "postponed") => {
     const was = f.status === "postponed" ? "postponed" : "upcoming", wasDue = f.due_at.slice(0, 10);
     return run(f.id, () => setFollowup(f.id, s, s === "postponed" ? inDays(7) : undefined), {

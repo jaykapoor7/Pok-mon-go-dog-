@@ -43,7 +43,8 @@ export type ToolOut = { data: unknown; summary: string; citations: Citation[]; p
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);
 const day = 86_400_000;
 const pid = () => Math.random().toString(36).slice(2, 10);
-const caseLabel = (c: { case_code?: string | null; title?: string | null; condition_class?: string | null }) => c.case_code ?? c.title ?? c.condition_class ?? "Case";
+/* The code as people read it everywhere else (SPC-31CED5, not the 32-character import code). */
+const caseLabel = (c: { case_code?: string | null; title?: string | null; condition_class?: string | null }) => (c.case_code ? shortCode(c.case_code) : null) ?? c.title ?? c.condition_class ?? "Case";
 const animalLabel = (a: { name?: string | null; straypaw_id?: string | null; code?: string | null }) => a.name || a.straypaw_id || a.code || "Animal";
 const NEEDS_ORG = { data: { error: "Organisation access required" }, summary: "Needs an organisation workspace", citations: [], ok: false } satisfies ToolOut;
 

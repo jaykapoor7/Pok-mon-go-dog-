@@ -22,7 +22,7 @@ const MIGRATIONS = [
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
   "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql", "20261118110000_kaju_action_log.sql",
-  "20261119090000_kaju_intelligence_layer.sql",
+  "20261119090000_kaju_intelligence_layer.sql", "20261120120000_ngo_profile_leads_only.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -897,6 +897,19 @@ section("Kaju intelligence layer: the rollback removes only what the migration a
   await db.exec(readFileSync(join(MIG, "20261119090000_kaju_intelligence_layer.sql"), "utf8"));
   const back = (await as(A, "select kaju_ai_eligibility($1) as e", [N1]))[0].e;
   ok(back.live === false && back.user_grant === null, "applied again, the switch is off and there are no grants");
+}
+
+section("The public profile: changed by an organisation's leads and coordinators, not by any member");
+{
+  const member = (await as(B, "select public.ngo_update_profile(p_mission => 'Rewritten by a member') as r"))[0].r;
+  ok(member.ok === false && /leads and coordinators/.test(member.error), "a member is refused, with the reason");
+  ok((await one("select mission from ngos where id = $1", [N1])).mission === null, "and the profile is unchanged");
+  const admin = (await as(A, "select public.ngo_update_profile(p_mission => 'Street dogs of Ward 12, cared for') as r"))[0].r;
+  ok(admin.ok === true && admin.ngo_id === N1, "the organisation's admin saves it");
+  ok((await one("select mission from ngos where id = $1", [N1])).mission === "Street dogs of Ward 12, cared for", "and the profile shows it");
+  const stranger = (await as(R, "select public.ngo_update_profile(p_mission => 'x') as r"))[0].r;
+  ok(stranger.ok === false && /Not a partner/.test(stranger.error), "someone in no organisation is refused");
+  ok(!!(await refused(null, "set role anon; select public.ngo_update_profile(p_mission => 'x')")), "anonymous callers cannot run it");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -93,7 +93,7 @@ function Month({ sample, offs, queue, list, defaultOffice, canPrepare }: { sampl
     return () => { live = false; };
   }, [sample, office, b.start, b.end, canPrepare]);
   const g = useMemo(() => blockers(queue, b.start, b.end), [queue, b.start, b.end]);
-  const blocked = g.list.reduce((t, x) => t + x.count, 0);
+  const blocked = g.records;
   const officeName = offs.find((o) => o.id === office)?.name ?? "the reviewing office";
   const pv = sample ? SAMPLE_PREVIEW : preview?.state === "ok" ? preview.preview : null;
   const ready = !!pv && pv.count > 0 && !pv.too_many && !!pv.contract && pv.unpriced === 0 && pv.total !== null;
@@ -136,7 +136,7 @@ function Month({ sample, offs, queue, list, defaultOffice, canPrepare }: { sampl
         ]} />
         {pv.too_many ? <p className="ns-small">Over 2,000 procedures: prepare shorter periods.</p> : null}
       </div> : <p className="ns-small">No contract with {officeName} covers {b.label}.</p>) : null}
-      {g.list.length ? <ul className="nx-feed" aria-label="What blocks the rest">{g.list.slice(0, 6).map((x) => <li key={x.reason}><span className="nx-feed-i">{x.count}</span><div><b><Link href={x.href}>{x.reason}</Link></b><p>{x.count === 1 ? "1 record" : `${x.count} records`} from {b.label}</p></div></li>)}</ul> : null}
+      {g.list.length ? <ul className="nx-feed" aria-label="What blocks the rest">{g.list.map((x) => <li key={x.reason}><span className="nx-feed-i">{x.count}</span><div><b><Link href={x.href}>{x.reason}</Link></b><p>{x.count === 1 ? "1 record" : `${x.count} records`} from {b.label}</p></div></li>)}</ul> : null}
       <div className="ns-acts" style={{ marginTop: 0 }}>
         {sample ? <TryLink>Prepare the {b.label} package · ₹{pv!.total}</TryLink>
           : canPrepare && office && ready ? <button type="button" className="nx-btn" disabled={!!busy} onClick={() => setAsking(true)}>Prepare {already ? "another" : "the"} {b.label} package · ₹{pv!.total}</button> : null}

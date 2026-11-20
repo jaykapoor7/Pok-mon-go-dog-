@@ -82,7 +82,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
   const { c, reg, animal, updates, medical, followups, neighbours, sameAnimal } = file;
   const code = shortCode(reg.case_code, c.id.slice(0, 8).toUpperCase());
-  const title = reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title && withAnimalName(c.title, dog);
+  const title = reg.condition_class && reg.condition_class !== "Not recorded" && reg.condition_class !== "Other" ? reg.condition_class : c.title && withAnimalName(c.title, dog);
   const cohort = cohortOf(file);
   const imported = reg.provenance === "imported_historical_record";
   const place = [c.zone, reg.city].filter(Boolean).join(", ");

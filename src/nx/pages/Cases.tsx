@@ -53,8 +53,8 @@ function toRow(c: CaseFact, now: number): CaseRow {
   const dueAt = c.next_due ? Date.parse(c.next_due) : null, endToday = new Date(); endToday.setHours(23, 59, 59, 999);
   const status = !open ? statusLabel(c.status_class) : historical ? "Imported, not confirmed" : stale ? "Needs a decision" : c.status_class === "in_progress" ? "In progress" : c.assignee_name ? "Open" : "Unassigned";
   return {
-    id: c.id, code: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Untitled case",
-    kind: c.condition_class && c.condition_class !== "Not recorded" && c.title ? c.title : sev(c.severity), severity: sev(c.severity), crit, place: c.zone ?? c.city ?? "Not recorded", who: c.assignee_name || "Unassigned", assigneeId: c.assignee_id,
+    id: c.id, code: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.condition_class && c.condition_class !== "Not recorded" && c.condition_class !== "Other" ? c.condition_class : c.title || "Untitled case",
+    kind: c.condition_class && c.condition_class !== "Not recorded" && c.condition_class !== "Other" && c.title ? c.title : sev(c.severity), severity: sev(c.severity), crit, place: c.zone ?? c.city ?? "Not recorded", who: c.assignee_name || "Unassigned", assigneeId: c.assignee_id,
     open, statusClass: c.status_class ?? "unknown", status, tone: !open ? STATUS_TONE[c.status_class ?? "unknown"] ?? "plain" : crit ? (isCriticalCondition(c.condition_class) || c.severity === "critical" ? "bad" : "warn") : stale ? "warn" : c.status_class === "in_progress" ? "accent" : "plain",
     next: c.next_action || (c.followups_upcoming ? `${c.followups_upcoming} follow-up${c.followups_upcoming === 1 ? "" : "s"}` : "—"), due: dueAt ? `Follow-up ${ddmm(c.next_due)}` : null, dueSoon: !!dueAt && dueAt <= endToday.getTime(), overdue: !!dueAt && dueAt < now,
     updated: ddmm(c.last_activity_at ?? c.occurred_at) ?? "—", updatedAt: Date.parse(c.last_activity_at ?? c.occurred_at ?? "") || 0, occurredAt: Date.parse(c.occurred_at ?? "") || 0,

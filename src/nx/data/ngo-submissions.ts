@@ -43,7 +43,10 @@ export function blockers(rows: QueueRow[], start: string, end: string, readLimit
     ...(counts.review ? [{ reason: "Waiting for coordinator evidence review", count: counts.review, href: `${EVIDENCE_TAB}&stage=review` }] : []),
     ...(counts.returned ? [{ reason: "Returned for correction", count: counts.returned, href: `${EVIDENCE_TAB}&stage=returned` }] : []),
   ];
-  return { list, partial, counts };
+  /* How many records are blocked: each counted once, however many pieces of evidence it lacks (the reasons above count
+     the pieces, so they can add up to more than the records). */
+  const records = counts.evidence + counts.vet + counts.review + counts.returned;
+  return { list, partial, counts, records };
 }
 /** The office named by the one contract in force today, or null when there is none or more than one. */
 export async function contractOffice(): Promise<string | null> {

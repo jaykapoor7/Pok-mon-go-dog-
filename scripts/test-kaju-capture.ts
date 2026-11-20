@@ -224,6 +224,12 @@ async function main() {
     const sent = ngo({ subject: { caseId: CASE_MAX } });
     const plain = only(await ask("ate well, stitches clean", sent.ctx), "add_note");
     assert.deepEqual([plain.caseId, plain.note], [CASE_MAX, "ate well, stitches clean"]);
+    /* The Tell Kaju box's own example: a note and a follow-up, both on this case (it used to be one note). */
+    const both = await ask("ate well, follow up Monday", sent.ctx);
+    const kinds = both.proposals.map((p) => p.kind).sort();
+    assert.deepEqual(kinds, ["add_note", "schedule_followup"], `${both.text} -> ${kinds}`);
+    for (const p of both.proposals) assert.equal((p as { caseId?: string }).caseId, CASE_MAX);
+    assert.equal((both.proposals.find((p) => p.kind === "add_note") as { note?: string }).note, "ate well");
     const dogSent = ngo({ subject: { dogId: MAX } });
     assert.equal(only(await ask("limping again since morning", dogSent.ctx), "add_note").caseId, CASE_MAX);
     const beside = ngo({ pagePath: `/ngo/cases/${CASE_MAX}` });

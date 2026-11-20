@@ -60,8 +60,11 @@ function Profile({ who }: { who: Who }) {
   const pick = (kind: "logo" | "cover", file: File) => { setUploading(kind); void run(`up:${kind}`, () => uploadImage(file), { quiet: true }).then((x) => { setUploading(null); if (x.ok && x.result) (kind === "logo" ? setLogo : setCover)(x.result); }); };
   const save = () => void run("profile", () => saveProfile({ mission: f.mission.trim(), about: f.about.trim(), website: f.website.trim(), contact_email: f.contact_email.trim(), contact_phone: f.contact_phone.trim(), city: f.city.trim(), state: f.state.trim(), registration_no: f.registration_no.trim(), founded_year: f.founded_year ? Number(f.founded_year) : null, areas_of_work: f.areas.split(",").map((s) => s.trim()).filter(Boolean), logo_url: logo ?? undefined, cover_photo: cover ?? undefined }), { ok: "Profile saved. Your public page shows it now." }).then((x) => { if (x.ok) r.reload(); });
   const logoNow = logo ?? org.logo_url, coverNow = cover ?? org.cover_photo;
+  /* The public profile is the organisation's face: its leads and coordinators change it (a field worker or vet could
+     save over it). Others see it as it is. */
+  const canEdit = who.sample || leadOrCoord(who.role);
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (!who.sample) save(); }} style={{ maxWidth: 760 }}>
+    <form onSubmit={(e) => { e.preventDefault(); if (!who.sample && canEdit) save(); }} style={{ maxWidth: 760 }}><fieldset disabled={!canEdit} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <Tools><span className="ns-sum"><b>{org.name}</b>{org.verified ? ", a verified organisation" : ""}. What you save here is your public profile.</span></Tools>
       <div className="ns-media" style={{ marginTop: 8 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,9 +95,9 @@ function Profile({ who }: { who: Who }) {
         <Field label="Registration number"><input value={f.registration_no} onChange={set("registration_no")} /></Field>
         <Field label="Founded"><input inputMode="numeric" value={f.founded_year} onChange={set("founded_year")} pattern="\d{4}" /></Field>
       </div>
-      <div className="ns-acts">{who.sample ? <TryLink>Save the profile</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy}>{busy === "profile" ? "Saving…" : "Save the profile"}</button>}</div>
-      <p className="nx-foot">Only members of a verified organisation can save it; the database refuses anyone else.</p>
-    </form>
+      {canEdit ? <div className="ns-acts">{who.sample ? <TryLink>Save the profile</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy}>{busy === "profile" ? "Saving…" : "Save the profile"}</button>}</div> : null}
+      <p className="nx-foot">{canEdit ? "Only the organisation's leads and coordinators can save it." : "Only the organisation's leads and coordinators change the public profile. Ask one of them if something here is out of date."}</p>
+    </fieldset></form>
   );
 }
 

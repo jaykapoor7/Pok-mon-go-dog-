@@ -18,6 +18,8 @@ grant execute on function auth.uid(), auth.role() to authenticated, anon;
 grant select, insert on storage.objects to authenticated;
 
 create table public.ngos (id uuid primary key default gen_random_uuid(), name text not null, slug text, demo_mode boolean default false, city text, logo_url text, cover_photo text, status text default 'active');
+-- The public profile columns ngo_update_profile writes (supabase/org-profiles.sql).
+alter table public.ngos add column mission text, add column about text, add column website text, add column contact_email text, add column contact_phone text, add column state text, add column areas_of_work text[], add column founded_year int, add column registration_no text;
 create table public.ngo_members (ngo_id uuid references public.ngos, user_id uuid, role text, created_at timestamptz default now(), primary key (ngo_id, user_id));
 create table public.review_offices (id uuid primary key default gen_random_uuid(), name text);
 create table public.review_office_members (office_id uuid references public.review_offices, user_id uuid, role text, primary key (office_id, user_id));

@@ -225,14 +225,14 @@ function LiveToday() {
         <div className="nx-head">
           <div>
             <p className="nx-eyebrow">{date} · {org!.name}</p>
-            <h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1>
+            <h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? userName.split(" ")[0]}` : ""}</h1>
             <p className="nx-sub">{attention === null ? "Reading what needs you…" : attention.length ? <><b className="num">{attention.length}</b> {attention.length === 1 ? "thing needs" : "things need"} attention, most urgent first.{partial.length ? ` Your ${partial.join(" and ")} could not be read.` : ""}</> : partial.length ? `Your ${partial.join(" and ")} could not be read, so nothing is shown as clear.` : "Nothing is overdue or critical."}</p>
           </div>
           {ngo ? <Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry nr-plus-dup"><Camera size={14} />Record an animal</Link> : null}
         </div>
         <AtKaju role="ngo" />
         <Tiles>
-          {ngo ? <Tile label="Visits overdue" n={num(visits, visits.data ? late.length : undefined)} tone={late.length ? "warn" : "plain"} href="/ngo/operations" note={visits.data ? `${plural(vs.length, "visit", "visits")} due in the next 7 days` : undefined}
+          {ngo ? <Tile label="Visits overdue" n={num(visits, visits.data ? late.length : undefined)} tone={late.length ? "warn" : "plain"} href={late.length ? "/ngo/operations?show=late" : "/ngo/operations"} note={visits.data ? `${plural(vs.length, "visit", "visits")} due in the next 7 days` : undefined}
             visual={vs.length ? <Split parts={[{ n: late.length, tone: "warn", label: "overdue" }, { n: now.length, tone: "blue", label: "today" }, { n: later.length, tone: "plain", label: "later" }]} /> : null} /> : null}
           {ngo ? <Tile label="Open cases" n={num(cases, c?.open)} href="/ngo/cases" note={c?.capped ? "The newest 800 open cases were read" : undefined}
             visual={c && c.open ? <Meter part={c.openCrit} whole={c.open} tone="bad" label={`${plural(c.openCrit, "is", "are")} critical or high`} /> : null} /> : null}

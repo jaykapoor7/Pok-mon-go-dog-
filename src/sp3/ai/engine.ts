@@ -328,7 +328,20 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
     const care = parseCare(q); if (care) return said(await prepareCare(care, q, ctx, acc, run));
     if (looksLikeReport(q) && q.trim().length <= 300) return said(await prepareReport(q, ctx, acc, run));
     /* Words sent from a record that are not a question or a command: a note on that record ("ate well, stitches clean"). */
-    if (subject.sent && plainStatement(q) && !caseSummaryAsked(q) && !canonical(q, true, office)) return said(await prepareNote({ ref: null, text: q.trim() }, q, ctx, acc, run));
+    if (subject.sent && plainStatement(q) && !caseSummaryAsked(q) && !canonical(q, true, office)) {
+      /* "ate well, follow up Monday" (the box's own example): the follow-up clause is a follow-up to schedule and the
+         rest a note, both prepared for Confirm. It used to become one note, so the follow-up was never scheduled. */
+      const parts = q.split(/\s*(?:[,;]|\.\s+|\band then\b)\s*/i).map((x) => x.trim()).filter(Boolean);
+      const fuPart = parts.length > 1 ? parts.find((x) => /^(?:follow[- ]?up|re-?check|re-?visit)\b/i.test(x)) : undefined;
+      const fuAsk = fuPart ? parseFollowup(fuPart) : null;
+      if (fuPart && fuAsk?.due) {
+        const rest = parts.filter((x) => x !== fuPart).join(", ");
+        const note = await prepareNote({ ref: null, text: rest }, q, ctx, acc, run);
+        const fu = await prepareFollowup(fuAsk, q, ctx, acc, run);
+        return said({ text: `${note.text}\n\n${fu.text}` });
+      }
+      return said(await prepareNote({ ref: null, text: q.trim() }, q, ctx, acc, run));
+    }
   }
   /* One case in words: "summarise this case", "what's happening with case SPC-…", "status of this case". The case is the one named, else the one open on the page. */
   if (caseSummaryAsked(q)) {
