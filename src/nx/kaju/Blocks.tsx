@@ -20,7 +20,7 @@ export function Blocks({ blocks, onSend, busy }: { blocks: unknown; onSend: (tex
 
 function One({ b, onSend, busy }: { b: Block; onSend: (t: string) => void; busy: boolean }) {
   switch (b.kind) {
-    case "stats": return <Figure title={b.title}><dl className="kb-stats">{b.items.map((s, i) => <div key={i} data-tone={s.tone}><dt>{s.label}</dt><dd>{s.value}</dd>{s.note ? <small>{s.note}</small> : null}</div>)}</dl></Figure>;
+    case "stats": return <Figure title={b.title}><dl className="kb-stats">{b.items.map((s, i) => <div key={i} data-tone={s.tone}><dt>{s.label}</dt><dd>{s.value}</dd>{s.note ? <dd className="is-note">{s.note}</dd> : null}</div>)}</dl></Figure>;
     case "table": return (
       <Figure title={b.title}>
         <div className="kb-scroll"><table className="kb-table"><thead><tr>{b.columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr></thead>

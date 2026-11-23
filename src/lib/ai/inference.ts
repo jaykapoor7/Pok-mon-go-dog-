@@ -216,6 +216,48 @@ export function publicBiteTurn(env: Record<string, string | undefined> = process
   return cfg;
 }
 
+/* ── The homepage's sample Kaju ──────────────────────────────────────────
+   On the public homepage a visitor can ask Kaju about a sample programme
+   (src/lib/kaju/demo). Visitors are not signed in, so they can never use
+   the staff door above. This is a third door with its own switch, off
+   unless the owner sets all of it: STRAYPAW_HOME_AI exactly "model", a
+   dated authorisation (STRAYPAW_HOME_AI_AUTHORISED_BY, "name:YYYY-MM-DD")
+   and a cap on model answers per day (STRAYPAW_HOME_AI_DAILY_TURNS).
+   Each answer is small by construction: few model calls, a short output
+   allowance, a short conversation. The route adds the same-site check,
+   size caps, per-visitor limits and a daily cap counted in the database
+   across every server instance; without that shared counter no model is
+   called. With the switch off, or any limit reached, Kaju answers the
+   sample by fixed rules, which costs nothing. */
+let homeDay = "", homeTurns = 0;
+export function publicDemoConfig(env: Record<string, string | undefined> = process.env): InferenceDecision {
+  if (env.STRAYPAW_HOME_AI?.trim() !== "model") return { allowed: false, reason: "The homepage's sample Kaju uses its fixed rules." };
+  const auth = env.STRAYPAW_HOME_AI_AUTHORISED_BY?.trim();
+  if (!auth || !/^[^:]{2,80}:\d{4}-\d{2}-\d{2}$/.test(auth)) return { allowed: false, reason: "The homepage's sample Kaju has no recorded authorisation." };
+  const daily = num(env.STRAYPAW_HOME_AI_DAILY_TURNS);
+  if (!daily) return { allowed: false, reason: "The homepage's sample Kaju has no daily cap." };
+  return { allowed: true, budget: {
+    monthlyCeilingInr: 0, perOrgDaily: Math.floor(daily), inrPerMTokIn: 0, inrPerMTokOut: 0, runCapInr: 0,
+    /* perUserDaily here is one visitor's model answers per day. */
+    perUserDaily: Math.min(Math.floor(num(env.STRAYPAW_HOME_AI_VISITOR_DAILY) ?? 20), 100),
+    maxConcurrent: Math.min(Math.floor(num(env.STRAYPAW_HOME_AI_MAX_CONCURRENT) ?? 4), 8),
+    maxOutputTokens: Math.min(Math.floor(num(env.STRAYPAW_HOME_AI_MAX_OUTPUT_TOKENS) ?? 1500), 3000),
+    maxSteps: Math.min(Math.floor(num(env.STRAYPAW_HOME_AI_MAX_STEPS) ?? 4), 5),
+  } };
+}
+/** One public answer on a model: allowed only while the switch is set, this instance's share of today's cap is not
+    reached and a slot is free. Counts the answer. The route's database counter is the cap across instances. */
+export function publicDemoTurn(env: Record<string, string | undefined> = process.env, now = new Date()): InferenceDecision {
+  const cfg = publicDemoConfig(env);
+  if (!cfg.allowed) return cfg;
+  const day = now.toISOString().slice(0, 10);
+  if (day !== homeDay) { homeDay = day; homeTurns = 0; }
+  if (homeTurns >= cfg.budget.perOrgDaily) return { allowed: false, reason: "Today's model answers for the sample are used up." };
+  if (running >= cfg.budget.maxConcurrent) return { allowed: false, reason: "Kaju is busy." };
+  homeTurns++;
+  return cfg;
+}
+
 export type ModelCredentials = { gateway: boolean; token: string; model: string };
 /** Credentials, resolved ONLY after an allowed decision. OIDC is imported lazily so it never runs otherwise. */
 export async function modelCredentials(decision: InferenceDecision, env: Record<string, string | undefined> = process.env): Promise<ModelCredentials | null> {

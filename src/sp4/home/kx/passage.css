@@ -1,0 +1,97 @@
+/* ════════════════════════════════════════════════════════════════════
+   The passage through the product (kx/Passage.tsx).
+
+   Three states of one page, chosen on <html> by the passage itself:
+     (none)     no JavaScript: the hero exactly as it was;
+     kx-on      motion: the card holds while the window grows into Kaju,
+                then draws back into a frame;
+     kx-still   reduced motion: nothing pins or moves; Kaju is an
+                ordinary section under the card.
+   Per-frame geometry (transform, clip-path, opacity) is written inline
+   by the passage; this file is the resting layout around it.
+   ════════════════════════════════════════════════════════════════════ */
+
+.kx-track { --kx-gap: 52px; position: relative; margin-top: var(--kx-gap); }
+@media (max-width: 900px) { .kx-track { --kx-gap: 40px; } }
+@media (max-width: 760px) { .kx-track { --kx-gap: 22px; } }
+.kx-pin { position: relative; }
+.kx-card0 { position: relative; }
+.s6-hero .kx-cardwrap .s6-canvas { margin-top: 0; }
+.kx-clip, .kx-glow, .kx-field, .kx-enter, .kx-resume { display: none; }
+
+/* The way in: a plain white capsule on the blueprint, above the window's left edge. */
+html.kx-js .kx-enter { position: absolute; z-index: 5; left: 64px; top: 30px; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: 99px; background: #fff; color: var(--s4-ink); font: 500 14px/1 var(--s4-sans); letter-spacing: -0.01em; cursor: pointer; box-shadow: 0 10px 26px -12px rgba(5, 14, 40, .6); transition: transform 160ms var(--s4-ease), box-shadow 160ms var(--s4-ease); }
+html.kx-js .kx-enter svg:first-child { color: var(--s4-blue); }
+html.kx-js .kx-enter:hover { transform: translateY(-1px); box-shadow: 0 14px 30px -12px rgba(5, 14, 40, .7); }
+html.kx-js .kx-enter:active { transform: scale(.97); }
+html.kx-js .kx-enter:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+html.kx-js .s6-hero .kx-card0 .s4d-win, html.kx-js .s6-hero .kx-card0 .s4d-phone { cursor: pointer; }
+@media (max-width: 900px) { html.kx-js .kx-enter { left: 16px; top: 24px; } }
+@media (max-width: 640px) { html.kx-js .kx-enter { left: 12px; top: 4px; padding: 0 12px; } html.kx-js .kx-enter::after { content: ""; position: absolute; inset: -4px; } html.kx-js .kx-enter:hover { transform: none; } }
+
+/* ── motion: the card holds, the product opens over it ─────────────── */
+/* Nothing in the page's flow changes when the passage switches on: the card is where the server put it. The stage
+   holds just under the page header, and its layers reach up behind the header to cover the whole screen. */
+/* The distance the card holds for. It is content, not padding: a sticky box only travels inside its parent's content. */
+html.kx-on .kx-track::after { content: ""; display: block; height: var(--kx-run, 260vh); }
+html.kx-on .kx-pin { position: sticky; top: var(--kx-stick, 72px); min-height: calc(var(--kx-vh, 100vh) - var(--kx-head, 72px)); overflow-x: clip; }
+html.kx-on .kx-cardwrap { padding-bottom: 24px; }
+html.kx-on .kx-card0 { transform-origin: 0 0; will-change: transform, opacity; }
+/* The card's arrival scale is the passage's now (one transform, one owner). */
+html.kx-on .s7-home .s6-hero .s6-canvas { transform: none; transition: none; }
+html.kx-on .kx-clip { display: block; position: absolute; z-index: 3; left: 0; top: var(--kx-top, -72px); width: 100%; height: var(--kx-vh, 100vh); visibility: hidden; contain: layout paint; }
+/* Until Kaju has taken over the window, the scripted demo under it keeps its own controls (pause, scenes). */
+html.kx-on .kx-track[data-phase="hero"] .kx-clip, html.kx-on .kx-track[data-phase="enter"] .kx-clip { pointer-events: none; }
+/* The card's shadow once it has closed around the framed window (placed by the passage at the card's resting edges). */
+html.kx-on .kx-glow { display: block; position: absolute; z-index: 2; border-radius: 28px; box-shadow: 0 30px 80px rgba(15, 42, 110, .22); pointer-events: none; opacity: 0; }
+/* The blueprint ground, under the hero card; the product and the handover line sit over the card. */
+html.kx-on .kx-field { display: block; position: absolute; z-index: 0; left: 0; top: var(--kx-top, -72px); width: 100%; height: var(--kx-vh, 100vh); background: var(--s6-deep); visibility: hidden; contain: layout paint; }
+html.kx-on .kx-field .s6-blueprint { z-index: 0; }
+html.kx-on .kx-cardwrap { position: relative; z-index: 1; }
+.kx-app { position: absolute; z-index: 2; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; opacity: 0; will-change: transform, opacity; }
+.kx-tilt { position: absolute; inset: 0; overflow: hidden; background: #fff; transform-origin: 50% 100%; }
+html.kx-on .kx-track[data-phase="out"] .kx-app, html.kx-on .kx-track[data-phase="past"] .kx-app, html.kx-on .kx-track[data-phase="exit"] .kx-clip { cursor: pointer; }
+html.kx-on .kx-track[data-phase="out"] .kx-clip, html.kx-on .kx-track[data-phase="past"] .kx-clip { cursor: pointer; }
+
+/* The handover line, on the blueprint above the framed window. */
+.kx-outro { position: absolute; z-index: 1; left: 0; right: 0; top: 88px; padding: 48px 24px 0; text-align: center; color: #fff; visibility: hidden; opacity: 0; cursor: default; }
+.kx-outro-k { margin: 0; font: 400 16px/1.4 var(--s4-sans); color: rgba(255, 255, 255, .78); letter-spacing: -0.01em; }
+.kx-outro-h { margin: 8px auto 0; max-width: 18ch; font: 500 48px/1.06 var(--s4-sans); letter-spacing: -0.04em; color: #fff; text-wrap: balance; }
+.kx-outro-a { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 24px; margin-top: 24px; }
+.kx-outro-a .s4-btn { gap: 8px; padding-left: 12px; }
+.kx-outro-l { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font: 500 16px/1 var(--s4-sans); color: #fff; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, .45); text-underline-offset: 4px; }
+.kx-outro-l:hover { text-decoration-color: #fff; }
+.kx-outro-l:focus-visible, .kx-outro-a .s4-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 99px; }
+@media (max-width: 1100px) { .kx-outro-h { font-size: 40px; } }
+@media (max-width: 760px) { .kx-outro { padding: 24px 16px 0; } .kx-outro-h { font-size: 32px; letter-spacing: -0.035em; } .kx-outro-k { font-size: 14px; } .kx-outro-a { margin-top: 16px; gap: 4px 16px; } .kx-outro-l { font-size: 14px; } }
+@media (max-height: 700px) and (min-width: 761px) { .kx-outro { padding-top: 24px; } .kx-outro-h { font-size: 40px; } .kx-outro-a { margin-top: 16px; } }
+
+/* Until the product's own code arrives: the frame it will fill. */
+.kx-opening { position: absolute; inset: 0; display: grid; grid-template-columns: 284px minmax(0, 1fr); background: #fff; font: 400 14px/1.4 var(--s4-sans); color: #59616d; }
+.kx-opening-side { background: #f6f7f8; border-right: 1px solid #e7e9ec; }
+.kx-opening-main { display: flex; align-items: center; gap: 12px; padding: 32px; align-self: start; }
+@media (max-width: 1100px) { .kx-opening { grid-template-columns: 52px minmax(0, 1fr); } }
+@media (max-width: 640px) { .kx-opening { grid-template-columns: minmax(0, 1fr); } .kx-opening-side { display: none; } .kx-opening-main { padding: 24px 16px; } }
+
+/* Inside the product the page's own chrome steps aside, and comes back on the way out. */
+html.kx-on .s4-nav { transition: transform 360ms var(--s4-ease), box-shadow 200ms var(--s4-ease); }
+html.kx-inside .s4-nav { transform: translateY(-105%); }
+html.kx-inside .s8-progress, html.kx-inside .s7-welcome { opacity: 0 !important; pointer-events: none; }
+html.kx-on .s7-welcome { transition: opacity 240ms ease; }
+
+/* Back to the conversation, from anywhere else on the page. */
+html.kx-on .kx-resume { position: fixed; z-index: 65; left: 24px; bottom: 24px; display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 24px 0 12px; border: 0; border-radius: 99px; background: #fff; color: var(--s4-ink); font-family: var(--s4-sans); text-align: left; cursor: pointer; box-shadow: 0 0 0 1px rgba(11, 30, 61, .1), 0 18px 40px -18px rgba(11, 30, 61, .45); animation: kx-rise 320ms var(--s4-ease) both; transition: transform 160ms var(--s4-ease); }
+html.kx-on .kx-resume:hover { transform: translateY(-1px); }
+html.kx-on .kx-resume:active { transform: scale(.97); }
+html.kx-on .kx-resume:focus-visible { outline: 2px solid var(--s4-blue); outline-offset: 3px; }
+.kx-resume b { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.kx-resume small { display: block; font-size: 12px; color: #6b7486; }
+.kx-resume.has-news b::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: var(--s4-blue); vertical-align: 1px; }
+@keyframes kx-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { html.kx-on .kx-resume { left: 12px; bottom: 84px; height: 52px; } }
+
+/* ── reduced motion: nothing pins, nothing travels ─────────────────── */
+html.kx-still .kx-clip { display: block; max-width: 1440px; margin: 32px auto 0; padding: 0 var(--s4-gut); scroll-margin-top: 88px; }
+html.kx-still .kx-outro { display: none; }
+html.kx-still .kx-app { position: relative; opacity: 1; height: min(820px, calc(100svh - 112px)); min-height: 520px; border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px rgba(11, 30, 61, .1), 0 30px 70px -30px rgba(22, 44, 96, .3); scroll-margin-top: 88px; }
+@media (prefers-reduced-motion: reduce) { .kx-enter, .kx-resume { transition: none !important; animation: none !important; } }

@@ -40,7 +40,10 @@ type Ctx = {
   start: (orgId: string, p: Planned) => Promise<{ id?: string; error?: string }>;
   confirm: (turnId: string, p: Proposal) => Promise<Saved>;
 };
-const KajuCtx = createContext<Ctx | null>(null);
+/* Exported so the homepage's sample Kaju can give the same conversation components its own provider (src/sp4/home/kx),
+   answering from the public sample instead of a signed-in workspace. Everything else uses KajuProvider below. */
+export type KajuContext = Ctx;
+export const KajuCtx = createContext<Ctx | null>(null);
 const KEY = "nx.kaju.turns.v2";
 /* What a saved answer keeps: what it showed (words, sources, figures), never prepared changes, which are confirmable only
    in the conversation that prepared them. Large figures are dropped rather than the conversation failing to save. */

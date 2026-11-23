@@ -70,7 +70,8 @@
     "test:bite-intake": "node --import tsx scripts/test-bite-intake.ts",
     "test:kaju-incident": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-incident.ts",
     "test:kaju-spend": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-spend.ts",
-    "test:kaju-context": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-context.ts"
+    "test:kaju-context": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-context.ts",
+    "test:kaju-home": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-home-demo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

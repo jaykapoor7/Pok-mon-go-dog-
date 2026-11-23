@@ -61,7 +61,8 @@ function useClock(run: boolean) {
   return [t, setT] as const;
 }
 
-export function HeroDemo() {
+/** `hold`: the demo is out of sight behind the live product (the homepage passage), so its clock rests. */
+export function HeroDemo({ hold = false }: { hold?: boolean } = {}) {
   const box = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -77,7 +78,7 @@ export function HeroDemo() {
     if (el && io) io.observe(el);
     return () => { document.removeEventListener("visibilitychange", on); io?.disconnect(); };
   }, []);
-  const [t, setT] = useClock(seen && visible && !paused && !still);
+  const [t, setT] = useClock(seen && visible && !paused && !still && !hold);
   const scene = still ? 0 : START.reduce((acc, s, i) => (t >= s ? i : acc), 0);
   const local = still ? 99999 : t - START[scene];
   const chat = still ? 99999 : t;

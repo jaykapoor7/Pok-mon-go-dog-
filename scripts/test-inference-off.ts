@@ -80,12 +80,13 @@ async function main() {
   ok("bite help has its own switch, needs an authorisation and a daily cap, counts turns and still needs a credential");
 
   /* One door: no other source file may import a model SDK or the OIDC helper. */
-  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/claude.ts", "src/lib/kaju/biteModel.ts"]);
+  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/claude.ts", "src/lib/kaju/biteModel.ts", "src/lib/kaju/demo/model.ts"]);
   const walk = (d: string): string[] => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx|js|mjs)$/.test(f) ? [p] : []; });
   const offenders = walk("src").filter((f) => /@vercel\/oidc|@anthropic-ai\/sdk|from ["']openai["']|@google\/generative-ai|@ai-sdk\/|ai-gateway\.vercel\.sh/.test(readFileSync(f, "utf8")) && !allowed.has(f));
   assert.deepEqual(offenders, []);
   assert.ok(readFileSync("src/lib/kaju/biteModel.ts", "utf8").includes("publicBiteTurn"), "bite help asks its own gate");
-  for (const f of ["src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/biteModel.ts"]) assert.ok(!readFileSync(f, "utf8").includes("@vercel/oidc"), `${f} must not resolve OIDC itself`);
+  assert.ok(readFileSync("src/lib/kaju/demo/model.ts", "utf8").includes("publicDemoTurn"), "the homepage sample asks its own gate");
+  for (const f of ["src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/biteModel.ts", "src/lib/kaju/demo/model.ts"]) assert.ok(!readFileSync(f, "utf8").includes("@vercel/oidc"), `${f} must not resolve OIDC itself`);
   assert.ok(readFileSync("src/sp3/ai/engine.ts", "utf8").includes("inferenceAllowed"));
   assert.ok(readFileSync("src/lib/photo-check.ts", "utf8").includes("inferenceAllowed"));
   ok("every model call goes through the one gate; nothing else imports a model SDK or OIDC");

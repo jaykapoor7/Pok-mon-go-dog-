@@ -1,0 +1,58 @@
+/* Kaju's frame on the homepage. The application's own stylesheet does the work (src/nx/nx.css and the Kaju sheets);
+   these few rules only seat that frame inside the homepage's product window instead of across a whole browser tab,
+   and style the two things the homepage adds: the record card and the way out. Values are on the app's 8-point scale. */
+
+.nx.kx-nx { position: absolute; inset: 0; z-index: auto; text-align: left; }
+.nx.kx-nx .nx-body { overscroll-behavior: auto; scroll-behavior: auto; }
+.nx.kx-nx .kx-org { cursor: default; }
+.nx.kx-nx .kx-org:hover { background: none; }
+.nx.kx-nx .nx-side .nx-item { cursor: default; }
+.nx.kx-nx .nx-side .nx-item:not(.is-on):hover { background: none; }
+.nx.kx-nx .kx-role { font-style: normal; font-size: 12px; color: var(--ink-3); background: none; min-width: 0; padding: 0; }
+.nx.kx-nx .nx-rail-b { cursor: default; }
+.nx.kx-nx .nx-top-r { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.nx.kx-nx .kx-out-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; }
+.nx.kx-nx .kx-only-s { display: none; }
+.nx.kx-nx .kj-noticed-h [role="heading"] { font-size: 16px; font-weight: 600; }
+.nx.kx-nx .kx-home { margin: 0 auto; }
+.nx.kx-nx .kx-starters { margin-top: 16px; }
+.nx.kx-nx .kj-foot .kj-link { display: inline-flex; align-items: center; gap: 4px; }
+.nx.kx-nx .kj-eyebrow .nx-sample { display: inline-block; }
+
+/* Once a conversation has started, the composer stays at the foot of the window (as it does on a phone in the app), so the
+   next question is always one click away while the answers scroll above it. */
+.nx.kx-nx .kx-home.has-talk { min-height: 100%; display: flex; flex-direction: column; padding-bottom: 0; }
+.nx.kx-nx .kx-home.has-talk .kj-one { flex: 1; display: flex; flex-direction: column; width: 100%; }
+.nx.kx-nx .kx-home.has-talk .kj-one > .kj-hero { order: 1; }
+.nx.kx-nx .kx-home.has-talk .kj-one > .kj-convo { order: 2; }
+.nx.kx-nx .kx-home.has-talk .kj-one > .kj-foot { order: 3; margin-bottom: 16px; }
+.nx.kx-nx .kx-home.has-talk .kj-one > .kj-compose { order: 10; margin-top: auto; position: sticky; bottom: 0; z-index: 5; padding: 16px 0 24px; background: linear-gradient(180deg, transparent, var(--bg) 16px); }
+.nx.kx-nx .kx-home.has-talk .kj-compose .nx-ask-in > div, .nx.kx-nx .kx-home.has-talk .kj-compose .nx-ask-in > textarea { min-height: 48px; }
+
+/* A sample record, opened from a link in an answer: a sheet over the conversation's right edge. */
+.nx.kx-nx .kx-card { position: absolute; z-index: 8; top: 44px; right: 0; bottom: 0; width: min(440px, 100%); display: flex; flex-direction: column; background: var(--raise); box-shadow: var(--shadow); border-radius: 16px 0 0 0; animation: kx-card-in 240ms var(--ease) both; }
+.nx.kx-nx .kx-card-h { display: flex; align-items: flex-start; gap: 12px; padding: 16px 12px 12px 24px; border-bottom: 1px solid var(--line); }
+.nx.kx-nx .kx-card-h > div { min-width: 0; flex: 1; display: grid; gap: 4px; justify-items: start; }
+.nx.kx-nx .kx-card-h b { font-size: 20px; font-weight: 650; letter-spacing: -.015em; line-height: 1.2; }
+.nx.kx-nx .kx-card-h small { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+.nx.kx-nx .kx-card-h .nx-ib { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; color: var(--ink-2); flex: none; }
+.nx.kx-nx .kx-card-h .nx-ib:hover { background: var(--hover); }
+.nx.kx-nx .kx-card-b { flex: 1; min-height: 0; overflow: auto; padding: 16px 24px 24px; }
+.nx.kx-nx .kx-card-f { padding: 12px 24px 16px; border-top: 1px solid var(--line); }
+.nx.kx-nx .kx-card-f .nx-btn { width: 100%; height: auto; min-height: 40px; padding: 8px 12px; white-space: normal; text-align: center; justify-content: center; line-height: 1.3; }
+@keyframes kx-card-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  .nx.kx-nx { grid-template-rows: minmax(0, 1fr); }
+  .nx.kx-nx .kx-hide-s { display: none; }
+  .nx.kx-nx .kx-only-s { display: inline; }
+  .nx.kx-nx .kx-out-btn { height: 40px; }
+  .nx.kx-nx .kj-home .kj-one { min-height: calc(var(--kx-vh, 100dvh) - 60px); }
+  .nx.kx-nx .kj-home .kj-one > .kx-starters { order: 2; }
+  .nx.kx-nx .kj-sub { font-size: 14px; }
+  .nx.kx-nx .kx-card { top: 0; border-radius: 0; width: 100%; }
+  .nx.kx-nx .kx-card-h { padding-left: 16px; }
+  .nx.kx-nx .kx-card-b { padding: 16px; }
+  .nx.kx-nx .kx-card-f { padding: 12px 16px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .nx.kx-nx .kx-card { animation: none; } }

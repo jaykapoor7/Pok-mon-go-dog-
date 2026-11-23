@@ -4,8 +4,7 @@ import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, Clipboar
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
 import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
-import { HeroDemo } from "@/sp4/home/HeroDemo";
-import { Blueprint } from "@/sp4/home/Blueprint";
+import { KajuPassage } from "@/sp4/home/kx/Passage";
 import { HeroRotator } from "@/sp4/home/HeroRotator";
 import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
 import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
@@ -16,7 +15,6 @@ import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import "@/sp4/home/v7/motion8.css";
 import { LandingMotion } from "@/sp4/home/v7/Motion";
-import { HeroPerch } from "@/sp4/home/HeroPerch";
 import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
 
@@ -73,17 +71,10 @@ export default function HomePage() {
             ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
             : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
           <HeroScroll />
-          <div className="s6-canvas">
-            <Blueprint tone="dark" />
-            {/* a soft light follows the pointer across the blueprint */}
-            <span className="s8-light" aria-hidden />
-            <div className="s4-hero-stage s6-stage">
-              {/* Kaju rests on the product window: the agent lives inside the work. */}
-              <span className="s4-hero-perch" aria-hidden><HeroPerch /></span>
-              <HeroDemo />
-            </div>
-          </div>
         </div>
+        {/* The product on a blueprint of a ward. Scrolling on, the window grows into Kaju itself, answering a visitor's
+            own questions about a sample programme, then draws back into a frame as the page continues (kx/Passage). */}
+        <KajuPassage />
       </section>
 
       {/* 2 · field partners */}
