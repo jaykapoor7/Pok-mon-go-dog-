@@ -64,12 +64,32 @@ function Frame({ active, onExit, focusKey, onConversation, answered }: LiveProps
   /* Kaju greets a visitor who has just come in, then settles. */
   useEffect(() => { if (!active) return; setHello(true); const t = window.setTimeout(() => setHello(false), 2400); return () => window.clearTimeout(t); }, [active]);
   useEffect(() => { if (!focusKey || !active) return; root.current?.querySelector<HTMLTextAreaElement>('textarea[aria-label="Ask Kaju"]')?.focus({ preventScroll: true }); }, [focusKey, active]);
-  /* The newest words are brought into view inside the window, as in the app; the page itself is never scrolled. */
+  /* The newest words are brought into view inside the window, as in the app; the page itself is never scrolled. While
+     Kaju is reading, the foot of the conversation; once he has answered, the whole answer if it fits above the composer
+     (so anything to confirm is in reach), otherwise its beginning. */
   const last = k.turns[k.turns.length - 1];
   useEffect(() => {
     const el = body.current; if (!el || !k.turns.length) return;
-    const t = window.setTimeout(() => { const turn = el.querySelector<HTMLElement>(".nx-kthread > li:last-child"); if (!turn) return; const top = turn.offsetTop - 96; el.scrollTo({ top: last?.pending ? el.scrollHeight : Math.max(0, top), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }, 80);
-    return () => window.clearTimeout(t);
+    const t = window.setTimeout(() => {
+      const turn = el.querySelector<HTMLElement>(".nx-kthread > li:last-child"); if (!turn) return;
+      const foot = el.querySelector<HTMLElement>(".kj-compose"), room = el.clientHeight - (foot && getComputedStyle(foot).position === "sticky" ? foot.offsetHeight : 0) - 24;
+      let top = 0, n: HTMLElement | null = turn; while (n && n !== el && el.contains(n)) { top += n.offsetTop; n = n.offsetParent as HTMLElement | null; }
+      const fits = turn.offsetHeight <= room;
+      const to = Math.min(el.scrollHeight - el.clientHeight, last?.pending ? el.scrollHeight : Math.max(0, fits ? top + turn.offsetHeight - room : top - 72));
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.scrollTop = to; return; }
+      /* Moved a frame at a time, and given up the moment anything else moves it (a finger, the keyboard bringing a
+         control into view): a scroll of the browser's own in flight here can carry the page along with it. */
+      const from = el.scrollTop, t0 = performance.now(); let set = from;
+      const step = (now: number) => {
+        if (Math.abs(el.scrollTop - set) > 2) return;
+        const v = Math.min(1, (now - t0) / 320), e = 1 - Math.pow(1 - v, 4);
+        set = Math.round(from + (to - from) * e); el.scrollTop = set; set = el.scrollTop;
+        if (v < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }, 80);
+    let raf = 0;
+    return () => { window.clearTimeout(t); cancelAnimationFrame(raf); };
   }, [k.turns.length, last?.pending]);
 
   /* A sample record's link opens that record as a card inside the window. It is never a page to navigate to. */

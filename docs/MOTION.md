@@ -45,6 +45,12 @@ The vocabulary was chosen from the 637 techniques in [awesome-ai-motion](https:/
 | progress fill | Report flow step rail (`motion.css`) | Each step's rule fills from the left as the reporter reaches it. |
 | confirm + `line-draw` | "Take this case" (`CaseRegister.tsx`) | A check presses in and its stroke draws, at the moment the case becomes yours. |
 
+**The homepage passage** (`src/sp4/home/kx/Passage.tsx`, November 2026) is the one place where depth, a lean and a
+line of rising words are used, and only as things this document allows: the plan of the ward moving in three depths is
+a camera move (`fly-to`, `travel` curve), the window leans only while it travels, and the handover line is the hero's own
+word rise in reading order. Kaju and the ask field are shared elements ("this came from there"). It is scroll-scrubbed,
+writes compositor properties only, and is absent under reduced motion. See `docs/HOME-KAJU.md`, "The choreography".
+
 The report flow's directional step transition (`AnimatePresence`, 28px, 220ms) predates this pass and was already within the system. It was left as it is.
 
 ## Accessibility and performance rules

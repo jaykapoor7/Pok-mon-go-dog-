@@ -10,9 +10,10 @@ import type { KajuState } from "@/kaju/poses";
 export function HeroPerch() {
   const [mood, setMood] = useState<KajuState | null>(null);
   useEffect(() => {
-    const links = [...document.querySelectorAll<HTMLElement>(".s6-hero .s4-actions a")];
+    /* The hero's two actions, and the way into the product on the blueprint (a wag: he is glad of the company). */
+    const links = [...document.querySelectorAll<HTMLElement>(".s6-hero .s4-actions a, .s6-hero .kx-enter")];
     let t = 0;
-    const enter = links.map((_, i) => () => { window.clearTimeout(t); setMood(i === 0 ? "tailWag" : "headTilt"); });
+    const enter = links.map((_, i) => () => { window.clearTimeout(t); setMood(i === 1 ? "headTilt" : "tailWag"); });
     const leave = () => { window.clearTimeout(t); t = window.setTimeout(() => setMood(null), 700); };
     links.forEach((l, i) => { l.addEventListener("pointerenter", enter[i]); l.addEventListener("focus", enter[i]); l.addEventListener("pointerleave", leave); l.addEventListener("blur", leave); });
     return () => { window.clearTimeout(t); links.forEach((l, i) => { l.removeEventListener("pointerenter", enter[i]); l.removeEventListener("focus", enter[i]); l.removeEventListener("pointerleave", leave); l.removeEventListener("blur", leave); }); };

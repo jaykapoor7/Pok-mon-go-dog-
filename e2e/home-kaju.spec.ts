@@ -16,12 +16,19 @@ async function enter(page: Page) {
   await page.getByRole("button", { name: "Ask Kaju yourself" }).click();
   await expect.poll(() => phase(page), { timeout: 15_000 }).toBe("inside");
   await expect(composer(page)).toBeVisible({ timeout: 20_000 });
+  /* The move in finishes in the middle of the inside stretch; wait until the page has come to rest there. */
+  await rest(page);
+}
+/** The page and Kaju's conversation have both stopped moving (a new answer is scrolled into place smoothly; a person
+    reads it before pressing anything in it, and so does the test). */
+async function rest(page: Page) {
+  const where = () => page.evaluate(() => [window.scrollY, document.querySelector(".kx-nx .nx-body")?.scrollTop ?? 0]);
+  await expect.poll(async () => { const a = await where(); await page.waitForTimeout(300); const b = await where(); return Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1]); }, { timeout: 10_000 }).toBeLessThan(1);
 }
 
 /* Each test asks as its own visitor: the endpoint allows one visitor 8 questions a minute, and the suite runs in parallel.
    (A deployment's platform sets this header itself; a visitor cannot choose it there.) */
-let visitor = 0;
-const asVisitor = () => ({ "x-forwarded-for": `198.51.100.${(process.pid + ++visitor * 7) % 250}` });
+const asVisitor = () => ({ "x-forwarded-for": `198.51.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` });
 test.beforeEach(async ({ page }) => { await quiet(page); await page.setExtraHTTPHeaders(asVisitor()); });
 
 test("the hero is the one people know, and the product's code is not part of the first load", async ({ page, request }) => {
@@ -50,6 +57,7 @@ test("going in, asking, opening a record, stepping out and coming back", async (
   await expect(answer).toContainText("SP-1044");
   await expect(page.locator(".kx-nx .kb-table")).toBeVisible();
   await expect(page.locator(".kx-nx .nx-kmeta").first()).toContainText("Sample programme");
+  await rest(page);
   expect(Math.abs((await page.evaluate(() => window.scrollY)) - at), "an answer never moves the page").toBeLessThan(4);
 
   /* A record link opens the record inside the window; the page does not navigate. */
@@ -67,6 +75,7 @@ test("going in, asking, opening a record, stepping out and coming back", async (
   await composer(page).press("Enter");
   const prepared = page.locator(".kx-nx .nx-kprop");
   await expect(prepared).toContainText("Prepared, not saved");
+  await rest(page);
   await prepared.getByRole("button", { name: "Confirm" }).click();
   await expect(prepared).toContainText("Nothing was stored");
 
@@ -108,6 +117,55 @@ test("scrolling is never held: the page runs from the hero through Kaju to the s
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
 });
 
+test("what moves says where it came from: Kaju, the ask field and the plan are each one thing all the way through", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/kx-on/);
+  const g = await page.evaluate(() => { const t = document.querySelector(".kx-track") as HTMLElement; const cs = getComputedStyle(t); return { top: t.getBoundingClientRect().top + window.scrollY, vt: parseFloat(cs.getPropertyValue("--kx-top")) || 0, run: parseFloat(cs.getPropertyValue("--kx-run")), vh: window.innerHeight }; });
+  const [hold, e, p, x] = (isMobile ? [0.26, 0.75, 0.5, 0.85] : [0.42, 0.9, 0.6, 1.0]).map((v) => v * g.vh);
+  const start = g.top + g.vt + hold;
+  expect(Math.abs(g.run - (hold + e + p + x)), "the test and the page agree on the passage's length").toBeLessThan(4);
+  const to = async (y: number) => { await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" as ScrollBehavior }), Math.round(y)); await page.waitForTimeout(900); };
+  const shown = (sel: string) => page.evaluate((q) => { const n = document.querySelector(q) as HTMLElement | null; return !!n && getComputedStyle(n).visibility === "visible" && getComputedStyle(n).display !== "none"; }, sel);
+
+  /* Resting on the card: Kaju is on his perch and nothing of the passage is drawn. */
+  await to(start - hold * 0.5);
+  expect(await shown(".s4-hero-perch")).toBe(true);
+  expect(await shown(".kx-kaju")).toBe(false);
+
+  /* Going in: he is in the air (not in two places), and the ask field is on its way to the composer. */
+  await page.mouse.wheel(0, 1);
+  await expect(page.locator('.kx-nx textarea[aria-label="Ask Kaju"]')).toBeAttached({ timeout: 20_000 });
+  await to(start + e * 0.45);
+  expect(await shown(".kx-kaju"), "Kaju is travelling").toBe(true);
+  expect(await shown(".s4-hero-perch"), "and has left his perch").toBe(false);
+  expect(await shown(".kx-nx .kj-hero-pup"), "and has not yet sat down").toBe(false);
+  expect(await shown(".kx-ask"), "the ask field is travelling").toBe(true);
+
+  /* Inside: he is in his seat, the composer is itself, and nothing carries a leftover style. */
+  await to(start + e + p * 0.4);
+  expect(await shown(".kx-kaju")).toBe(false);
+  expect(await shown(".kx-nx .kj-hero-pup")).toBe(true);
+  expect(await shown(".kx-ask")).toBe(false);
+  expect(await page.evaluate(() => [".nx-top", ".kj-hero-t", ".kj-compose", ".kj-notice"].map((q) => (document.querySelector(`.kx-nx ${q}`) as HTMLElement).style.cssText).join("")), "the product is left exactly as it is").toBe("");
+  expect(await page.evaluate(() => (document.querySelector(".kx-app") as HTMLElement).style.transform)).toBe("none");
+
+  /* Out: he sits on the framed window, the plan marks its corners, and every word of the handover line has landed. */
+  await to(start + e + p + x + 1);
+  expect(await shown(".kx-kaju"), "Kaju waits on the framed window").toBe(true);
+  expect(await shown(".kx-nx .kj-hero-pup")).toBe(false);
+  expect(await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".kx-mark")].map((m) => Number(m.style.opacity)))).toEqual([1, 1, 1, 1]);
+  expect(await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".kx-w > span")].every((w) => w.style.transform === ""))).toBe(true);
+  await expect(page.getByRole("heading", { name: "Now meet the teams it works with." })).toBeVisible();
+  const kaju = await page.locator(".kx-kaju").boundingBox(), win = await page.locator(".kx-tilt").boundingBox();
+  expect(Math.abs(kaju!.y + kaju!.height - win!.y), "his feet are on the window's top edge").toBeLessThan(kaju!.height * 0.45);
+
+  /* And it runs backwards just the same: scrolling up puts him back on his perch. */
+  await to(start - hold * 0.5);
+  expect(await shown(".s4-hero-perch")).toBe(true);
+  expect(await shown(".kx-kaju")).toBe(false);
+  expect(await page.evaluate(() => (document.querySelector(".kx-card0") as HTMLElement).style.visibility)).toBe("");
+});
+
 test("Escape steps out, and the keyboard lands on the way back in", async ({ page, isMobile }) => {
   test.skip(!!isMobile, "keyboard journey");
   await enter(page);
@@ -121,6 +179,7 @@ test("inside Kaju the page has no accessibility violations and no sideways scrol
   await enter(page);
   await page.locator(".kx-nx .kj-job", { hasText: "October package" }).click();
   await expect(page.locator(".kx-nx .kb-stats")).toBeVisible();
+  await rest(page);
   const results = await new AxeBuilder({ page }).include(".kx-app").withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
@@ -134,6 +193,7 @@ test("with reduced motion nothing pins or travels, and Kaju is an ordinary secti
   await expect(page.locator("html")).toHaveClass(/kx-still/);
   expect(await page.evaluate(() => getComputedStyle(document.querySelector(".kx-pin")!).position)).toBe("relative");
   expect(await page.evaluate(() => getComputedStyle(document.querySelector(".kx-card0")!).transform)).toBe("none");
+  for (const q of [".kx-kaju", ".kx-ask", ".kx-mark", ".kx-fig", ".kx-field"]) expect(await page.evaluate((sel) => getComputedStyle(document.querySelector(sel)!).display, q), `${q} is not drawn`).toBe("none");
   await page.getByRole("button", { name: "Ask Kaju yourself" }).click();
   await expect(composer(page)).toBeVisible({ timeout: 20_000 });
   await expect(page.locator(".kx-app")).toBeInViewport();
