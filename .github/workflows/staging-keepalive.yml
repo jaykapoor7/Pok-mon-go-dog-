@@ -1,0 +1,29 @@
+# On the Supabase Free plan a project with too little database activity over
+# 7 days is paused. Staging serves demo.straypaw.org (linked from production)
+# and the signed-in e2e suite, so it must stay awake even in a quiet week.
+#
+# This reads one public row through the demo deployment's deep health check:
+# the same request a visitor makes, no secrets involved. Production does not
+# need this: it has real traffic and the hourly Production health probe.
+name: Staging keep-alive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 7 * * *" # daily
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Deep health check on the demo (staging database)
+        env:
+          STRAYPAW_HEALTHCHECK_URL: https://demo.straypaw.org/api/health?deep=1
+        run: node scripts/ops/probe-health.mjs

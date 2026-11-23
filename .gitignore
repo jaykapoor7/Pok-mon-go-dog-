@@ -61,3 +61,10 @@ docs/sp4/reference/
 # Local Supabase CLI metadata
 /supabase/.temp/
 demo-footage/
+
+# Local Supabase stack (scripts/local-supabase.sh) and any backup files.
+# Backups hold personal data: keep them encrypted and out of git.
+/.supabase-local/
+*.tar.gz.age
+*.tar.age
+/backups/

@@ -1,0 +1,178 @@
+# Nightly encrypted backup of the production database, a weekly restore drill,
+# and a weekly copy of Storage objects. This replaces the daily backups that
+# Supabase only provides on paid plans (docs/SUPABASE-COST-AND-BACKUPS.md).
+#
+# Setup (owner, once):
+#   1. On your own machine: `age-keygen -o straypaw-backup.key`. Keep that file
+#      offline (password manager + one other place). It is the ONLY way to read
+#      the backups. Put the public key it prints (age1…) in the repository
+#      VARIABLE BACKUP_AGE_RECIPIENTS (Settings → Secrets and variables →
+#      Actions → Variables). Several keys may be listed, space separated.
+#   2. Secret SUPABASE_POOLER_URL already exists (production Session pooler).
+#   3. Optional, for Storage: secrets BACKUP_SUPABASE_URL and
+#      BACKUP_SUPABASE_SERVICE_KEY (production URL and secret/service key).
+#
+# The repository is public, so artifacts are downloadable by anyone signed in
+# to GitHub: everything uploaded here is age-encrypted first. The private key
+# is never given to GitHub.
+#
+# Note: GitHub disables scheduled workflows in a public repository after 60
+# days without commits. Re-enable it in the Actions tab if that ever happens.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "41 20 * * *" # 02:11 IST, daily
+  workflow_dispatch:
+    inputs:
+      restore_drill:
+        description: "Restore this backup into a throwaway local Supabase stack and compare row counts"
+        type: boolean
+        default: true
+      storage:
+        description: "Also back up Storage objects"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: straypaw-db-backup
+  cancel-in-progress: false
+
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DB_URL: ${{ secrets.SUPABASE_POOLER_URL }}
+      AGE_RECIPIENTS: ${{ vars.BACKUP_AGE_RECIPIENTS }}
+      SUPABASE_CMD: supabase
+    steps:
+      - name: Check configuration
+        run: |
+          missing=""
+          [ -n "$DB_URL" ] || missing="$missing secret SUPABASE_POOLER_URL;"
+          [ -n "$AGE_RECIPIENTS" ] || missing="$missing variable BACKUP_AGE_RECIPIENTS;"
+          if [ -n "$missing" ]; then
+            echo "::error::Backups are not configured:$missing see the header of .github/workflows/db-backup.yml"
+            exit 1
+          fi
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.1
+
+      - name: Install age and the Postgres 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Dump and encrypt
+        env:
+          KEEP_PLAINTEXT_DIR: ${{ runner.temp }}/plain
+        run: bash scripts/ops/db-backup.sh production "$RUNNER_TEMP/out"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-db-${{ github.run_id }}
+          path: ${{ runner.temp }}/out/*.age
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Decide whether to run the restore drill
+        id: drill
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=${{ inputs.restore_drill }}" >> "$GITHUB_OUTPUT"
+          elif [ "$(date -u +%u)" = "7" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"   # every Sunday
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore drill (local Supabase stack on this runner)
+        if: steps.drill.outputs.run == 'true'
+        run: |
+          d="$RUNNER_TEMP/drill"
+          mkdir -p "$d"
+          supabase init --workdir "$d" < /dev/null > /dev/null
+          sed -i -E 's/^major_version = .*/major_version = 17/' "$d/supabase/config.toml"
+          supabase start --workdir "$d" -x studio,imgproxy,edge-runtime,logflare,vector
+          TARGET_DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            bash scripts/ops/db-restore.sh "$(ls -d "$RUNNER_TEMP"/plain/*)" | tee "$RUNNER_TEMP/drill.log"
+          supabase stop --workdir "$d" --no-backup
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Production database backup"
+            if ls "$RUNNER_TEMP"/plain/*/meta.txt >/dev/null 2>&1; then
+              echo '```'; cat "$RUNNER_TEMP"/plain/*/meta.txt; echo '```'
+              echo "Encrypted artifact: $(ls "$RUNNER_TEMP"/out/ 2>/dev/null) ($(du -h "$RUNNER_TEMP"/out/*.age 2>/dev/null | cut -f1))"
+            fi
+            [ -f "$RUNNER_TEMP/drill.log" ] && { echo "Restore drill:"; echo '```'; tail -1 "$RUNNER_TEMP/drill.log"; echo '```'; }
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove plaintext
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/plain"
+
+  storage:
+    if: github.event_name == 'schedule' || inputs.storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SUPABASE_URL: ${{ secrets.BACKUP_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.BACKUP_SUPABASE_SERVICE_KEY }}
+      AGE_RECIPIENTS: ${{ vars.BACKUP_AGE_RECIPIENTS }}
+    steps:
+      - name: Weekly, or when asked
+        id: when
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%u)" != "7" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$AGE_RECIPIENTS" ]; then
+            echo "Storage backup not configured (BACKUP_SUPABASE_URL, BACKUP_SUPABASE_SERVICE_KEY, BACKUP_AGE_RECIPIENTS)." >> "$GITHUB_STEP_SUMMARY"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        if: steps.when.outputs.run == 'true'
+        with:
+          persist-credentials: false
+
+      - name: Install age
+        if: steps.when.outputs.run == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq age
+
+      - name: Copy, archive and encrypt Storage objects
+        if: steps.when.outputs.run == 'true'
+        run: |
+          name="production-storage-$(date -u +%Y%m%dT%H%M%SZ)"
+          node scripts/ops/storage-backup.mjs backup "$RUNNER_TEMP/$name" | tee -a "$GITHUB_STEP_SUMMARY"
+          r=(); for k in $AGE_RECIPIENTS; do r+=(-r "$k"); done
+          mkdir -p "$RUNNER_TEMP/out"
+          tar -C "$RUNNER_TEMP" -cf - "$name" | age "${r[@]}" -o "$RUNNER_TEMP/out/$name.tar.age"
+          rm -rf "${RUNNER_TEMP:?}/$name"
+
+      - name: Upload encrypted Storage backup
+        if: steps.when.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-storage-${{ github.run_id }}
+          path: ${{ runner.temp }}/out/*.age
+          retention-days: 35
+          if-no-files-found: error

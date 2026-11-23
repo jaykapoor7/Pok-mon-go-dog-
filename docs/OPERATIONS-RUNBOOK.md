@@ -8,8 +8,10 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 |---|---|---|
 | Web app and API | Vercel project `pok-mon-go-dog`, deployed from `main` | Preview deployments for other branches |
 | Database, auth, storage | Supabase production `toujthlzjmhmoyykmayx` | Postgres 17, PostGIS, region **ap-northeast-2 (Seoul)** |
-| Staging | Supabase `ucxfxiddufwqithtdtix` | Test accounts only; migrations go here first |
-| Scheduled jobs | Vercel cron | 03:00 UTC spatial refresh, 04:00 UTC Kaju record checks |
+| Staging | Supabase `ucxfxiddufwqithtdtix` serves Vercel Preview, including demo.straypaw.org and signed-in e2e. Test accounts only; migrations go here first | Kept awake by the daily **Staging keep-alive** workflow |
+| Scheduled jobs | Vercel cron (daily: 03:00 spatial refresh, 04:00 Kaju checks, 04:30 automations, 04:45 notifications, UTC); pg_cron in production (map snapshots, animal cache, spatial queue, mission and automation ticks) | |
+| Backups | GitHub Actions **Database backup** workflow | See below |
+| Cost and plan | See [SUPABASE-COST-AND-BACKUPS.md](SUPABASE-COST-AND-BACKUPS.md) | |
 
 **Data residency.** Production data is stored in Seoul. A municipal or state pilot may require personal data to stay in India under the DPDP Act and the department's own terms. Before a government pilot handles personal data, confirm the requirement in writing; if India is required, create a Supabase project in `ap-south-1` (Mumbai), restore into it (below) and switch the Vercel environment variables.
 
@@ -23,15 +25,20 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 
 ## Backups
 
-- Supabase takes daily backups of the production database. Retention depends on the plan (7 days on Pro); point-in-time recovery is an add-on. Check the current setting in Supabase → Database → Backups before the pilot and record it here.
-- Storage objects (photos, evidence files) are not in the database backup. Export the `evidence` and photo buckets weekly to an India-region bucket controlled by StrayPaw.
-- Migrations are in `supabase/migrations`, so the schema can be rebuilt from git.
+Supabase provides daily backups only on paid plans, so StrayPaw runs its own; this works on any plan. Full details and test results are in [SUPABASE-COST-AND-BACKUPS.md](SUPABASE-COST-AND-BACKUPS.md).
+
+- **Database:** nightly at 02:11 IST, the **Database backup** workflow dumps production (roles, schema, data) and age-encrypts it. It uploads the result as an artifact, kept 30 days. Every Sunday it also restores the dump into a throwaway local Supabase stack and fails unless every table's row count matches.
+- **Storage objects:** every Sunday, all buckets are copied, encrypted and kept for 35 days. This needs the `BACKUP_SUPABASE_URL` and `BACKUP_SUPABASE_SERVICE_KEY` secrets.
+- **Key:** artifacts in this public repository are encrypted to `BACKUP_AGE_RECIPIENTS`. The private key is held offline by the owner, in two places. Without it the backups cannot be read.
+- **Run on demand:** Actions → Database backup → Run workflow. Do this before any migration or plan change.
 
 ## Restore
 
-1. Decide the restore point (time of the last good state) and note who approved the restore.
-2. Restore into a **new** Supabase project, never over production: Supabase → Database → Backups → Restore to new project (or PITR to a timestamp).
-3. Check the restored project: run `npm run db:security:audit`, open the public map and one organisation workspace against it, and compare row counts for `dogs`, `cases`, `animal_operation_events` and `operational_audit_log`.
+1. Decide the restore point (the last good night) and note who approved the restore.
+2. Restore into a **new** project or a local stack, never over production. `scripts/ops/db-restore.sh` refuses production and asks for explicit confirmation of any other hosted target:
+   `TARGET_DB_URL=… ALLOW_REMOTE_RESTORE=<new-ref> AGE_IDENTITY_FILE=… npm run db:restore -- <file>.tar.gz.age`
+   It checks SHA-256 sums, restores in one transaction and compares every table's row count with the backup. Restore Storage with `npm run storage:backup -- restore <dir>`.
+3. Check the restored project: run `npm run db:security:audit` and open the public map and one organisation workspace against it. Re-create Auth settings, Edge Functions and the Realtime publication if missing.
 4. Switch `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel to the restored project and redeploy.
 5. Record what was lost between the restore point and the incident, and tell affected organisations.
 
@@ -68,4 +75,4 @@ Some public map functions were applied to production directly and never added to
 
 - Supabase Auth: leaked-password protection (dashboard switch).
 - An uptime monitor on `/api/health?deep=1`.
-- Weekly storage export to an India-region bucket.
+- Backups: set `BACKUP_AGE_RECIPIENTS` (and the two Storage secrets) so the Database backup workflow runs.
