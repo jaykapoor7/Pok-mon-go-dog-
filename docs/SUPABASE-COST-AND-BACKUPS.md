@@ -11,7 +11,9 @@ Production qualifies for the Supabase Free plan with large headroom. Every quota
 
 The Nano compute size is the one real trade-off; see [Risks](#risks-and-tradeoffs).
 
-**Recommendation: move the organisation to Free** once the backup workflow has run green with a restore drill, using the procedure below. **Fallback:** if a trigger in [When to go back to paid](#when-to-go-back-to-paid) fires, keep production on Pro and move staging to its own Free organisation. That costs **$25/month**.
+A standard Supabase CLI dump would **not** restore StrayPaw safely. See [What Supabase's own dump leaves out](#what-supabases-own-dump-leaves-out-verified-24-nov-2026); the backup now covers every gap and proves it on each run.
+
+**Recommendation: move the organisation to Free** once every critical item in the [Readiness checklist](#readiness-checklist) passes, using the procedure below. **Fallback:** if a trigger in [When to go back to paid](#when-to-go-back-to-paid) fires, keep production on Pro and move staging to its own Free organisation. That costs **$25/month**.
 
 | Setup | Monthly cost |
 |---|---|
@@ -77,48 +79,98 @@ Free keeps custom SMTP, Auth rate-limit settings, RLS, the Data API, pg_cron, Po
 
 Project refs, URLs, API keys, JWT secret and pooler URIs **do not change** on a plan change. **No environment variable changes are needed** in Vercel or GitHub.
 
-## Backups and recovery (new)
+## Backups and recovery
+
+### What Supabase's own dump leaves out (verified 24 Nov 2026)
+
+`supabase db dump` (CLI 2.122.1, exact `pg_dump` commands from `--dry-run`) is the format Supabase documents for restores. On its own it does **not** restore StrayPaw correctly:
+
+| Gap | Why | Effect on a restore made only from the CLI dump | Covered by |
+|---|---|---|---|
+| **Privileges come back open** | `pg_dump` writes privileges relative to owner defaults. A fresh Supabase project grants anon/authenticated ALL on every new object. | Production revokes anon on **121 of 154 tables and 394 functions**. All of them would be readable or executable by anyone, including `SECURITY DEFINER` admin functions. Reproduced locally. | `acl.sql`: 4,277 statements on production, exact revokes and grants |
+| Storage access rules | Schema `storage` is excluded | 16 policies on production and 18 on staging lost. Nobody could read or upload private files, or the rules differ. | `platform.sql` |
+| Custom triggers on Auth tables | Schema `auth` is excluded | Staging's `auth.users.demo_account_guard` lost; production has none | `platform.sql` |
+| Extensions | Schema `extensions` is excluded | PostGIS, pgvector and http are not created, so the restore fails at the first geometry column | `extensions.sql` |
+| pg_cron jobs | Schema `cron` is excluded; `cron.job` is platform-owned | The 5 production jobs (map refresh, mission tick…) never run | `platform.sql` via `cron.schedule` |
+| Cron run history, Realtime messages | Operational or ephemeral | None (not needed) | Deliberately excluded |
+| Vault secrets | Encrypted with a per-project key | Cannot be restored | Both projects hold 0; the backup **fails** if any appear |
+| Storage file bytes | Not in Postgres | Files missing | `storage-backup.mjs` + metadata reconcile |
+| Project settings | Outside Postgres (Auth providers/SMTP/URLs, API settings, Edge Function secrets) | Must be re-entered | Recorded in the restore procedure below |
+
+Included as-is: all application schemas (`public`, `private`, `health`, `straypaw_private`, `operations_private`, staging's `careos`/`sd`) and RLS policies. Also the data of `auth` (users with password hashes, identities, sessions, refresh tokens, MFA) and `storage` (buckets, object rows), Realtime publication membership, sequences and custom roles (no passwords; there are none).
+
+### What runs
 
 | What | How | When | Where |
 |---|---|---|---|
-| Production database | `supabase db dump` roles + schema + data (Supabase's documented restorable format), row counts parsed from the dump, SHA-256 sums, age-encrypted | Daily 02:11 IST | GitHub Actions artifact, 30-day retention |
-| Restore drill | Restores that night's dump into a throwaway local Supabase stack on the runner. Fails unless every table's row count equals the dump's. | Sundays, and on demand | Job log and summary |
-| Storage objects | Every bucket and object, with a manifest of sizes and SHA-256, age-encrypted | Sundays, and on demand | Artifact, 35-day retention |
+| Database, **both projects** | CLI dump + `extensions.sql`, `platform.sql`, `acl.sql`, row counts, and a fingerprint (`structure.tsv`, 2,889 items on production). A fingerprint is taken before and after the dump; the dump is redone if anything changed in between. Age-encrypted. | Daily 02:11 IST | Artifact, 30 days |
+| Restore drill, both projects | Fresh local Supabase stack on the runner. Database restored, then must match exactly: row counts, structure, privileges, policies, triggers, cron, buckets, and Auth and Storage digests. Then the Auth server must list every account; Storage files are uploaded, metadata reconciled and every file re-downloaded and hashed. HTTP checks as anon: revoked table refused, public view served, public file served, private file refused. Free-plan size limits. Timings under Nano-like limits. | Every night; Storage on Sundays | Run summary |
+| Storage objects, both projects | Every bucket and object, sizes and SHA-256, age-encrypted | Sundays, and on demand | Artifact, 30 days |
+| **Backup verification** (PR check) | The real recovery path: dump → encrypt → upload artifact → **download** → decrypt → restore → full drill. Uses a throwaway key that dies with the runner, so the uploaded copy (1 day) is undecryptable. | Every PR that changes backup code | PR checks |
 
-The repository is **public**, so its artifacts can be downloaded by anyone signed in to GitHub. Everything is encrypted to the owner's age public key before upload, and the private key never goes to GitHub. Lose the private key and the backups are unreadable: keep two offline copies.
+CI logs here are public, so failed restore rows are reported as table + SQLSTATE only, never values. Storage logs name buckets, not files.
 
-Tested on 23 Nov 2026 against a local PostgreSQL. 12/12 checks passed for the database scripts:
+### Alerts
 
-- Encrypt, decrypt, restore and verify all work, and awkward text (newlines, tabs, backslashes, Unicode, `\.`) comes back byte-for-byte.
-- The scripts refuse to run with no recipient key.
-- A wrong key, a tampered file and a row-count mismatch are each rejected.
-- Production and unconfirmed hosted targets are refused.
+| Signal | Catches | Setup |
+|---|---|---|
+| Issue "Database backup failing" (label `backup-alert`), closed by the next success | Any failed or BLOCKED nightly run | None; GitHub notifies you of new issues |
+| Daily freshness check (Staging keep-alive workflow) | No successful backup in 30 h: skipped or delayed schedules, a disabled workflow | None |
+| **Heartbeat** at healthchecks.io (free) | Nothing ran at all, including GitHub disabling schedules in a public repo after 60 quiet days | Create a check (period 1 day, grace 6 h) and put its ping URL in secret `BACKUP_HEARTBEAT_URL` |
+| Telegram | Same as the issue, to your phone | Optional: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` |
 
-7/7 checks passed for Storage against a mock API: more than 1,000 objects, nested folders, odd filenames, byte-identical restore, and the checksum and production guards. The GitHub workflow itself (Supabase CLI dump and the drill on the runner) runs for the first time when you trigger it (step 3 below).
+GitHub delays scheduled runs heavily: the AnimalID worker, scheduled every 10 minutes, ran about twice a day in November. That is why the freshness check and the heartbeat exist.
+
+### Setup (owner)
+
+1. `age-keygen -o straypaw-backup.key` on your machine. Keep two offline copies; without the key the backups cannot be read. Optionally create a second key for a co-founder.
+2. Repository **variable** `BACKUP_AGE_RECIPIENTS` = the `age1…` public key(s), space separated.
+3. Repository **secrets**:
+   - production: `SUPABASE_POOLER_URL` (exists), `BACKUP_SUPABASE_URL` (`https://toujthlzjmhmoyykmayx.supabase.co`), `BACKUP_SUPABASE_SERVICE_KEY`
+   - staging: `STAGING_POOLER_URL` (Session pooler URI), `STAGING_SUPABASE_URL` (`https://ucxfxiddufwqithtdtix.supabase.co`), `STAGING_SUPABASE_SERVICE_KEY`
+   - alerts: `BACKUP_HEARTBEAT_URL`
+4. Re-run **Backup verification** on the PR. Both jobs must be green.
+5. After merge: Actions → Database backup → Run workflow. Download the artifact and test your key: `CHECK_ONLY=1 AGE_IDENTITY_FILE=straypaw-backup.key npm run db:restore -- <artifact>.zip`.
+
+Local tests (24 Nov 2026), all passing:
+
+- **24/24 full-fidelity checks** against an emulated Supabase: API roles, platform schemas, default privileges granting anon ALL, Storage policies, an `auth.users` trigger and an extension in `extensions`. They cover:
+  - the artifact zip decrypting with either of two keys
+  - anon still denied on revoked tables and functions after restore, with column grants kept
+  - Storage policies and the auth trigger restored, and the trigger not re-firing
+  - identical password hashes and sequence positions
+  - Storage metadata reconcile
+  - no row values in failure logs, and nothing committed on failure
+  - **a negative control: a CLI-only restore is caught by the fingerprint, and does let anon read the revoked table**
+- 12/12 checks of the core encrypt/restore/guard behaviour.
+- 7/7 Storage checks against a mock API.
+
+The generators and fingerprint were also run read-only against both live catalogs (Postgres 17).
 
 ### Restore procedure (incident)
 
 1. Decide the restore point and record who approved it.
-2. Download the artifact (Actions → Database backup → run → Artifacts) and unzip it to get the `.tar.gz.age` file.
-3. Restore into a **new** project, never over production. On Free, a third project only fits after pausing staging (Free allows two active projects). Alternatively, upgrade to Pro for the duration.
+2. Download the artifact (Actions → Database backup → run → Artifacts). The `.zip` can be passed directly.
+3. Restore into a **new** project, never over production. On Free, a third project fits only after pausing staging, or upgrade to Pro for the duration. Then enable nothing by hand: `extensions.sql` does it.
    ```bash
    TARGET_DB_URL='postgresql://postgres.<new-ref>:<pw>@<pooler-host>:5432/postgres' \
    ALLOW_REMOTE_RESTORE=<new-ref> AGE_IDENTITY_FILE=~/straypaw-backup.key \
-     npm run db:restore -- production-<stamp>.tar.gz.age
+     npm run db:restore -- production-db-<run>.zip
    ```
-   The script verifies checksums, restores in one transaction and compares every table's row count.
-4. Storage:
+   It verifies checksums and restores in one transaction, in this order: extensions, roles, schema, data, platform policies/triggers/cron, exact privileges. It then compares row counts and the full fingerprint.
+4. Storage, then put the original metadata back:
    ```bash
    age -d -i key production-storage-<stamp>.tar.age | tar -x
-   SUPABASE_URL=https://<new-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=… \
-   ALLOW_STORAGE_RESTORE=<new-ref> npm run storage:backup -- restore production-storage-<stamp>
+   SUPABASE_URL=https://<new-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=… ALLOW_STORAGE_RESTORE=<new-ref> \
+     npm run storage:backup -- restore production-storage-<stamp>
+   TARGET_DB_URL=… ALLOW_REMOTE_RESTORE=<new-ref> bash scripts/ops/storage-reconcile.sh <decrypted db backup dir>
+   SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run storage:backup -- verify production-storage-<stamp>
    ```
-5. Re-create anything not in a dump:
-   - Auth settings (SMTP, URL configuration, rate limits)
-   - Realtime publication tables, if missing
-   - Edge Functions (`supabase/functions`)
-   - pg_cron jobs, if `cron.job` was not carried
-6. Run `npm run db:security:audit` against it, open the map and one workspace, then switch the three Supabase variables in Vercel and redeploy (OPERATIONS-RUNBOOK → Restore).
+5. Re-enter project settings, which live outside Postgres:
+   - Auth: Site URL and redirect URLs, providers, custom SMTP, email templates, rate limits, Turnstile/CAPTCHA
+   - API: exposed schemas
+   - Edge Functions (`supabase/functions`) and their secrets
+6. New JWT keys mean existing sessions end; users sign in again with their same passwords. Switch the three Supabase variables in Vercel and redeploy (OPERATIONS-RUNBOOK → Restore).
 
 ## Local development (new)
 
@@ -140,10 +192,8 @@ The failed $35.64 invoice stays owed after a downgrade. Per Supabase's billing F
 - [ ] Organisation → Usage, current cycle, per project: DB < 350 MB, Storage < 700 MB, Egress < 3.5 GB, MAU < 35k (70% of Free).
 - [ ] No other Free projects owned by any Owner/Admin of this org (Free allows two active projects per person).
 - [ ] No branches, PITR, custom domain, IPv4 or log drain add-ons: Project → Settings → Add-ons shows none. This was true on 23 Nov.
-- [ ] `BACKUP_AGE_RECIPIENTS` set; the **Database backup** workflow run manually with *restore drill* and *storage* ticked is green.
-- [ ] Downloaded that run's artifacts and test-decrypted them locally: `age -d -i key file | tar -tz | head`.
+- [ ] Every **critical** item in [Readiness checklist](#readiness-checklist) is ticked. That includes both Backup verification jobs green, a nightly run green for both projects, and your key tested on a real artifact.
 - [ ] Independent copy: on Pro, Database → Backups → download the latest daily backup and keep it with the age key.
-- [ ] Staging keep-alive workflow has run green once.
 
 ### 2. Downgrade (owner, dashboard)
 
@@ -186,15 +236,67 @@ The fallback, step by step:
 
 ## Risks and tradeoffs
 
-- **Nano compute.** These are the heaviest production queries since June, measured on Micro:
-  - `refresh_map_snapshots` (18 s mean historically, 2.5 s in the last day)
-  - the public city RPC (2.7 s mean)
-  - `list_public_org_impacts` (3.4 s mean)
-
-  With half the memory and shared CPU these can get slower. The database fits in RAM, so this is CPU-bound and usually acceptable at current traffic. Rollback takes minutes.
-- **Backups become ours.** RPO goes from Supabase's daily backup to our nightly one (equivalent). Storage RPO is one week; new uploads are rare and small. If the workflow breaks, nobody else is watching: a red nightly run is the alert. GitHub also disables scheduled workflows in public repositories after 60 days without commits.
+- **Nano compute.** The heaviest work is the 15-minute map refresh. Over 7 days on Micro, `refresh-map-snapshots` ran at p50 2.6 s, **p95 25.6 s and max 89 s**, with no failures. `refresh-public-animal-cache` ran at p95 6.8 s. With half the memory and shared CPU these get slower. The restore drill times them on a copy of production under Nano-like limits (see the run summary). If they misbehave after the downgrade, optimise `refresh_map_snapshots` or re-upgrade: rollback takes minutes.
+- **Backups become ours.** RPO goes from Supabase's daily backup to our nightly one (equivalent). Storage RPO is one week; new uploads are rare and small. Failures open an issue, a daily freshness check catches missed schedules, and the external heartbeat catches GitHub not running anything. All three need the setup above.
 - **Hard quota limits.** On Free, going over a quota leads to restrictions, not bills. Today's headroom is 4×.
 - **Support.** Community only. The workaround for an outage is the rollback above, which restores paid support immediately.
+
+## Security review (24 Nov 2026)
+
+Both projects' security and performance advisors were read in full. Nothing found blocks the downgrade, and none of it is affected by the plan change. No policy or grant was changed.
+
+| Finding | Production | Assessment |
+|---|---|---|
+| `security_definer_view` (ERROR) | 18 `public_*` views | Intentional and documented (docs/SECURITY-DEFINER-VIEWS.md). Each projects a filtered public subset; base tables stay revoked from anon. Flipping them is a separate, planned change. |
+| `anon_security_definer_function_executable` | 27 | Reviewed one by one: public read RPCs (map, totals, stories, bite-help services), `track_event` and `oh_submit_bite_notice` (public by design, rate-limited inside). `org_animals` filters on `my_ngo()`, which is `auth.uid()`-based, so it returns nothing to anon. `nx_messages_notify`/`nx_notifications_queue`/`nx_messages_check` are trigger functions: the Data API cannot call them. **No exposure.** Hygiene item: revoke EXECUTE on those three from anon. |
+| `authenticated_security_definer_function_executable` | 331 | The app's write path by design: every write is an RPC that checks membership inside. |
+| `rls_enabled_no_policy` | 18 | Deny-all tables reached only through definer functions or the service role (e.g. `connection_secrets`, `kaju_voice_access`). Correct. |
+| `function_search_path_mutable` | 8 | Small helpers (`assign_straypaw_id`, `oh_need`, …). Low risk; pin `search_path` in a future migration. |
+| `auth_rls_initplan` (performance) | 42 policies, mostly `nx_*` (Kaju, messages) | `auth.uid()` re-evaluated per row. Matters more on Nano as tables grow; rewrite as `(select auth.uid())`. |
+| `multiple_permissive_policies` | 2 (`medical_events`, `nx_kaju_policies`) | Minor performance cost; can be merged. |
+| `auth_leaked_password_protection` | Disabled | **Pro-only**: it cannot be enabled on Free. Not enabled today, so nothing is lost. |
+| Staging only | `spatial_ref_sys` RLS off, PostGIS in `public`, 43 no-policy tables, `campaign_*` executable by anon | Staging drift with test data only; tracked by OPERATIONS-RUNBOOK → Staging schema drift. |
+
+**Found and fixed in the backup system itself:** a CLI-only restore re-opens every revoked table and function to anon (see the gaps table above). The restore now replays exact privileges and fails if any privilege differs.
+
+## Free plan compatibility
+
+| Feature StrayPaw uses | On Free? |
+|---|---|
+| Postgres 17 with postgis, vector, http, pg_cron, pgcrypto, uuid-ossp, pg_stat_statements, vault | Yes |
+| pg_cron (5 jobs in production, 2 every minute) | Yes |
+| RLS, `SECURITY DEFINER` RPCs, Data API, custom schemas | Yes |
+| Realtime (4 `nx_*` tables) | Yes (200 concurrent, 2M messages) |
+| Storage: 9 buckets, limits ≤ 25 MB, public and private | Yes (50 MB per-file cap); image transformations (Pro-only) are not used |
+| Auth: email/password, Turnstile CAPTCHA, custom SMTP if configured | Yes. Session timeboxes, leaked-password protection and SAML are Pro-only and not used. |
+| Edge Functions (2, unused) | Yes |
+| Session pooler for GitHub Actions (IPv4) | Yes (no IPv4 add-on needed) |
+| Branching, PITR, read replicas, log drains, custom domain | Not used |
+| Daily backups, no-pause, 7-day logs, email support | Lost; covered above or accepted |
+
+Auth settings live outside Postgres and could not be read from here. Before downgrading, open Authentication → Settings and confirm no Pro-only option is switched on: session timebox, inactivity timeout, single session, leaked-password protection.
+
+## Readiness checklist
+
+**Critical**: all must be true before merging *and* before downgrading.
+
+- [ ] Backup verification (this PR): **production** job green. It proves database restore, Auth, privileges, policies and timings from the downloaded encrypted artifact.
+- [ ] Backup verification: **production Storage** covered. Needs `BACKUP_SUPABASE_URL` and `BACKUP_SUPABASE_SERVICE_KEY`.
+- [ ] Backup verification: **staging** job green. Needs `STAGING_POOLER_URL`, `STAGING_SUPABASE_URL` and `STAGING_SUPABASE_SERVICE_KEY`.
+- [ ] `BACKUP_AGE_RECIPIENTS` set; private key stored offline in two places.
+- [ ] `BACKUP_HEARTBEAT_URL` set (healthchecks.io, 1 day + 6 h grace) and its alert reaches your phone or email.
+- [ ] After merge: manual **Database backup** run green for both projects, with drill and storage. Its artifact decrypted with your key: `CHECK_ONLY=1 … npm run db:restore -- <artifact>.zip`.
+- [ ] Failed $35.64 invoice paid; no overdue balance.
+- [ ] Usage page: DB < 350 MB, Storage < 700 MB, Egress < 3.5 GB in the current cycle.
+- [ ] Nano-like timings in the drill summary: nothing over 30 s, and no memory kill.
+- [ ] Auth settings: no Pro-only option enabled.
+
+**Recommended** (not blocking):
+
+- [ ] Apply `20261123120000_cron_history_retention.sql` (staging, then production).
+- [ ] Telegram alert secrets.
+- [ ] Revoke EXECUTE on the three trigger functions from anon; pin `search_path` on the 8 flagged functions; rewrite the 42 `auth_rls_initplan` policies.
+- [ ] Delete the two unused Edge Functions.
 
 ## Further optimisations (not done; product decisions)
 

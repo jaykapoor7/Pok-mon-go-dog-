@@ -27,17 +27,19 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 
 Supabase provides daily backups only on paid plans, so StrayPaw runs its own; this works on any plan. Full details and test results are in [SUPABASE-COST-AND-BACKUPS.md](SUPABASE-COST-AND-BACKUPS.md).
 
-- **Database:** nightly at 02:11 IST, the **Database backup** workflow dumps production (roles, schema, data) and age-encrypts it. It uploads the result as an artifact, kept 30 days. Every Sunday it also restores the dump into a throwaway local Supabase stack and fails unless every table's row count matches.
-- **Storage objects:** every Sunday, all buckets are copied, encrypted and kept for 35 days. This needs the `BACKUP_SUPABASE_URL` and `BACKUP_SUPABASE_SERVICE_KEY` secrets.
-- **Key:** artifacts in this public repository are encrypted to `BACKUP_AGE_RECIPIENTS`. The private key is held offline by the owner, in two places. Without it the backups cannot be read.
-- **Run on demand:** Actions → Database backup → Run workflow. Do this before any migration or plan change.
+- **Database, both projects:** the **Database backup** workflow runs nightly at 02:11 IST. It dumps production and staging, then adds what Supabase's own dump leaves out: exact privileges, Storage policies, custom auth triggers, extensions and cron jobs. Each dump is age-encrypted and uploaded as an artifact, kept 30 days.
+- **Restore drill:** every night, the dump is restored into a throwaway local Supabase stack. The run fails unless every table count, privilege, policy, trigger and the Auth and Storage digests match the source.
+- **Storage objects:** every Sunday, all buckets are copied, encrypted and kept 30 days. After restoring them, `scripts/ops/storage-reconcile.sh` puts owner and metadata back.
+- **Alerts:** a failure opens the `backup-alert` issue. A daily freshness check fails if nothing succeeded in 30 h. The `BACKUP_HEARTBEAT_URL` dead-man's switch alerts if nothing ran at all.
+- **Key:** artifacts in this public repository are encrypted to `BACKUP_AGE_RECIPIENTS`; the private key is held offline by the owner, in two places.
+- **Run on demand:** Actions → Database backup → Run workflow. Do this before any migration or plan change. PRs that touch backup code run **Backup verification**, which restores from the downloaded encrypted artifact.
 
 ## Restore
 
 1. Decide the restore point (the last good night) and note who approved the restore.
 2. Restore into a **new** project or a local stack, never over production. `scripts/ops/db-restore.sh` refuses production and asks for explicit confirmation of any other hosted target:
    `TARGET_DB_URL=… ALLOW_REMOTE_RESTORE=<new-ref> AGE_IDENTITY_FILE=… npm run db:restore -- <file>.tar.gz.age`
-   It checks SHA-256 sums, restores in one transaction and compares every table's row count with the backup. Restore Storage with `npm run storage:backup -- restore <dir>`.
+   It checks SHA-256 sums and restores in one transaction (extensions → roles → schema → data → platform → privileges). It then compares row counts and the full structure/privilege fingerprint. Restore Storage with `npm run storage:backup -- restore <dir>`, then run `scripts/ops/storage-reconcile.sh`.
 3. Check the restored project: run `npm run db:security:audit` and open the public map and one organisation workspace against it. Re-create Auth settings, Edge Functions and the Realtime publication if missing.
 4. Switch `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel to the restored project and redeploy.
 5. Record what was lost between the restore point and the incident, and tell affected organisations.

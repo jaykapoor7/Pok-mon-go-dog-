@@ -1,0 +1,42 @@
+# Proves, before merge, that backups of both projects fully restore: database
+# (row counts, structure, privileges, RLS and Storage policies, auth.users
+# triggers, cron, Auth accounts), Storage files and metadata, permission
+# behaviour over HTTP, Free-plan limits, and timings under Nano-like limits.
+#
+# Runs the real recovery path: dump → encrypt → upload artifact → download →
+# decrypt → restore into a throwaway local Supabase stack. The encryption key
+# is generated on the runner and destroyed with it, and the uploaded artifact
+# is kept for one day: nobody can ever decrypt it. Nothing is written to either
+# Supabase project (reads only).
+name: Backup verification
+
+on:
+  pull_request:
+    paths:
+      - "scripts/ops/**"
+      - ".github/workflows/_backup-target.yml"
+      - ".github/workflows/backup-verify.yml"
+      - ".github/workflows/db-backup.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: straypaw-backup-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production:
+    uses: ./.github/workflows/_backup-target.yml
+    secrets: inherit
+    with:
+      target: production
+      mode: verify
+
+  staging:
+    uses: ./.github/workflows/_backup-target.yml
+    secrets: inherit
+    with:
+      target: staging
+      mode: verify

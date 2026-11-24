@@ -11,6 +11,11 @@
  *   SUPABASE_URL=https://<new-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=… \
  *   ALLOW_STORAGE_RESTORE=<new-ref> node scripts/ops/storage-backup.mjs restore <dir>
  *
+ * `verify <dir>` downloads every object back from the target and compares sha256.
+ *
+ * Logs name buckets and counts, never object paths (file names can be personal
+ * and CI logs of this repository are public).
+ *
  * <dir>/manifest.json lists buckets (with their public flag and limits) and
  * every object with its size and sha256; restore re-checks each hash before
  * uploading. The directory is plaintext: the workflow tars and age-encrypts
@@ -28,8 +33,8 @@ const [mode, dir] = process.argv.slice(2);
 const base = (process.env.SUPABASE_URL ?? "").replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
-if (!["backup", "restore"].includes(mode) || !dir || !base || !key) {
-  console.error("usage: SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… storage-backup.mjs backup|restore <dir>");
+if (!["backup", "restore", "verify"].includes(mode) || !dir || !base || !key) {
+  console.error("usage: SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… storage-backup.mjs backup|restore|verify <dir>");
   process.exit(2);
 }
 
@@ -48,7 +53,7 @@ async function api(path, init = {}, attempt = 1) {
 
 async function json(path, init) {
   const res = await api(path, init);
-  if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path}: HTTP ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path.split("/").slice(0, 3).join("/")}: HTTP ${res.status}`);
   return res.json();
 }
 
@@ -77,7 +82,7 @@ async function backup() {
     manifest.buckets.push({ id: b.id, name: b.name, public: b.public, file_size_limit: b.file_size_limit ?? null, allowed_mime_types: b.allowed_mime_types ?? null });
     for (const f of await listAll(b.id)) {
       const res = await api(`/object/${encodeURIComponent(b.id)}/${enc(f.path)}`);
-      if (!res.ok) throw new Error(`download ${b.id}/${f.path}: HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`download from bucket ${b.id} failed: HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
       const out = join(dir, "objects", b.id, f.path);
       await mkdir(dirname(out), { recursive: true });
@@ -106,21 +111,36 @@ async function restore() {
   let n = 0;
   for (const o of manifest.objects) {
     const buf = await readFile(join(dir, "objects", o.bucket, o.path));
-    if (sha256(buf) !== o.sha256) throw new Error(`Checksum mismatch: ${o.bucket}/${o.path}`);
+    if (sha256(buf) !== o.sha256) throw new Error(`Checksum mismatch in bucket ${o.bucket} (object ${n + 1} of the manifest)`);
     const res = await api(`/object/${encodeURIComponent(o.bucket)}/${enc(o.path)}`, {
       method: "POST",
       headers: { "Content-Type": o.mimetype ?? "application/octet-stream", "x-upsert": "true", ...(o.cacheControl ? { "cache-control": o.cacheControl } : {}) },
       body: buf,
     });
-    if (!res.ok) throw new Error(`upload ${o.bucket}/${o.path}: HTTP ${res.status} ${await res.text()}`);
+    if (!res.ok) throw new Error(`upload to bucket ${o.bucket} failed: HTTP ${res.status}`);
     n++;
   }
   console.log(`Restored ${n} objects into ${manifest.buckets.length} buckets.`);
 }
 
+/* Download every object listed in the manifest from the target and compare
+   its sha256: proves the bytes, not just the rows, are back. */
+async function verify() {
+  const manifest = JSON.parse(await readFile(join(dir, "manifest.json"), "utf8"));
+  let bad = 0;
+  for (const o of manifest.objects) {
+    const res = await api(`/object/${encodeURIComponent(o.bucket)}/${enc(o.path)}`);
+    const ok = res.ok && sha256(Buffer.from(await res.arrayBuffer())) === o.sha256;
+    if (!ok) { bad++; if (bad <= 5) console.error(`Not restored correctly: ${o.bucket}/<object ${manifest.objects.indexOf(o)}> (HTTP ${res.status})`); }
+  }
+  if (bad) throw new Error(`${bad} of ${manifest.objects.length} objects are missing or differ.`);
+  console.log(`OK: all ${manifest.objects.length} objects downloaded from the target match their sha256.`);
+}
+
 try {
+  if (!["backup", "restore", "verify"].includes(mode)) throw new Error("mode must be backup, restore or verify");
   await mkdir(dir, { recursive: true });
-  await (mode === "backup" ? backup() : restore());
+  await (mode === "backup" ? backup() : mode === "restore" ? restore() : verify());
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
