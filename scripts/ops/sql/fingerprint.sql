@@ -8,6 +8,11 @@
 -- ones on auth.users), extensions, Realtime publication tables, Storage bucket
 -- settings, pg_cron jobs, and digests of Auth accounts (password hashes
 -- included), Auth identities and Storage object metadata.
+-- Expression definitions (views, constraints, policies, trigger conditions) are
+-- compared with brackets and whitespace removed: when pg_dump's text is parsed
+-- again Postgres flattens nested ANDs, e.g. "((a AND b) AND c)" (from BETWEEN)
+-- comes back as "(a AND b AND c)". Same meaning, different text (seen on the
+-- first production restore, 24 Nov 2026). Function bodies and indexes stay exact.
 -- Prints names and hashes only, never row values. Read-only.
 -- Run with: psql -AtX -F "$(printf '\t')" -f fingerprint.sql
 set search_path to pg_catalog;
@@ -48,7 +53,7 @@ where att.attacl is not null and att.attnum > 0 and not att.attisdropped
 group by n.nspname, c.relname
 union all
 -- Views and materialized views: definition
-select 'view', n.nspname || '.' || c.relname, md5(pg_get_viewdef(c.oid))
+select 'view', n.nspname || '.' || c.relname, md5(regexp_replace(pg_get_viewdef(c.oid), '[()[:space:]]', '', 'g'))
 from pg_class c join _us n on n.oid = c.relnamespace where c.relkind in ('v', 'm')
 union all
 -- Functions and procedures: full definition (security definer, search_path, body)
@@ -73,19 +78,19 @@ union all
 select 'index', n.nspname || '.' || ic.relname, md5(pg_get_indexdef(i.indexrelid))
 from pg_index i join pg_class ic on ic.oid = i.indexrelid join pg_class tc on tc.oid = i.indrelid join _us n on n.oid = tc.relnamespace
 union all
-select 'constraint', n.nspname || '.' || c.relname || '.' || k.conname, md5(pg_get_constraintdef(k.oid))
+select 'constraint', n.nspname || '.' || c.relname || '.' || k.conname, md5(regexp_replace(pg_get_constraintdef(k.oid), '[()[:space:]]', '', 'g'))
 from pg_constraint k join pg_class c on c.oid = k.conrelid join _us n on n.oid = c.relnamespace
 union all
 -- RLS policies everywhere except pg_cron's own
 select 'policy', n.nspname || '.' || c.relname || '.' || p.polname,
        md5(concat_ws('|', p.polpermissive, p.polcmd,
          array_to_string(array(select case when r = 0 then 'PUBLIC' else pg_get_userbyid(r) end from unnest(p.polroles) r order by 1), ','),
-         pg_get_expr(p.polqual, p.polrelid), pg_get_expr(p.polwithcheck, p.polrelid)))
+         regexp_replace(coalesce(pg_get_expr(p.polqual, p.polrelid), ''), '[()[:space:]]', '', 'g'), regexp_replace(coalesce(pg_get_expr(p.polwithcheck, p.polrelid), ''), '[()[:space:]]', '', 'g')))
 from pg_policy p join pg_class c on c.oid = p.polrelid join pg_namespace n on n.oid = c.relnamespace
 where n.nspname <> 'cron'
 union all
 -- Triggers on our tables, and our own triggers on platform tables (e.g. auth.users)
-select 'trigger', n.nspname || '.' || c.relname || '.' || t.tgname, md5(pg_get_triggerdef(t.oid) || t.tgenabled::text)
+select 'trigger', n.nspname || '.' || c.relname || '.' || t.tgname, md5(regexp_replace(pg_get_triggerdef(t.oid), '[()[:space:]]', '', 'g') || t.tgenabled::text)
 from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
 join pg_proc f on f.oid = t.tgfoid join pg_namespace fn on fn.oid = f.pronamespace
 where not t.tgisinternal
