@@ -40,6 +40,9 @@ for db in src dst dst_noacl dst_err; do psql -q "$U/postgres" -c "create databas
 
 psql -q "$U/src" <<'SQL'
 create extension pgcrypto with schema extensions;
+alter table auth.users add column link_token_hash text;
+create table auth.newer_feature(id int primary key, v text);
+insert into auth.newer_feature values (1, 'x');
 create schema private;
 create table public.dogs(id serial primary key, name text, notes text, owner uuid, digest text default encode(extensions.digest('x','sha256'),'hex'));
 alter table public.dogs enable row level security;
@@ -81,6 +84,7 @@ grep -q "sightings public read" "$P/schema.sql" && bad "schema.sql unexpectedly 
 CHECK_ONLY=1 AGE_IDENTITY_FILE="$S/k2.txt" bash scripts/ops/db-restore.sh "$S/artifact.zip" >/dev/null 2>&1 && ok "artifact zip decrypts with the second recipient key" || bad "zip/second key"
 TARGET_DB_URL="$U/dst" AGE_IDENTITY_FILE="$S/k1.txt" bash scripts/ops/db-restore.sh "$S/artifact.zip" > "$S/restore.log" 2>&1 && ok "restore + counts + fingerprint from artifact zip" || { bad "full restore"; cat "$S/restore.log"; }
 grep -E "^OK" "$S/restore.log"
+grep -q "auth.users	column link_token_hash" "$S/restore.log" && grep -q "auth.newer_feature	whole table" "$S/restore.log" && ok "newer Auth version: extra column and table reported and left out, restore still verified" || { bad "platform version tolerance"; grep -A3 "version differences" "$S/restore.log"; }
 
 [ "$(has dst "select has_table_privilege('anon','public.dogs','select')")" = f ] && ok "anon still cannot read dogs after restore" || bad "anon can read dogs"
 [ "$(has dst "select has_function_privilege('anon','public.admin_wipe()','execute')")" = f ] && ok "anon still cannot execute admin_wipe()" || bad "anon can execute admin_wipe"
