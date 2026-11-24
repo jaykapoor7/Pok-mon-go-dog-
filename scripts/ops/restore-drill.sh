@@ -40,7 +40,15 @@ trap cleanup EXIT
 say "### Restore drill: $(grep '^label=' "$dbdir/meta.txt" | cut -d= -f2) ($(grep '^created_utc=' "$dbdir/meta.txt" | cut -d= -f2))"
 $SB init --workdir "$W" < /dev/null > /dev/null
 sed -i -E 's/^project_id = .*/project_id = "drill"/; s/^major_version = .*/major_version = 17/' "$W/supabase/config.toml"
-$SB start --workdir "$W" -x studio,imgproxy,edge-runtime,logflare,vector > "$W/start.log" 2>&1 || { tail -20 "$W/start.log"; exit 1; }
+# Shared CI runners sometimes already hold the default 5432x ports: move every
+# port to 6432x (the stack reports its URLs, so nothing below assumes a port).
+sed -i -E 's/^(port|shadow_port|smtp_port|pop3_port|inspector_port) = 543([0-9]{2})$/\1 = 643\2/' "$W/supabase/config.toml"
+start() { $SB start --workdir "$W" -x studio,imgproxy,edge-runtime,logflare,vector,mailpit > "$W/start.log" 2>&1; }
+if ! start; then
+  echo "Stack did not start; retrying once:"; tail -3 "$W/start.log"
+  $SB stop --workdir "$W" --no-backup > /dev/null 2>&1 || true
+  start || { tail -20 "$W/start.log"; exit 1; }
+fi
 eval "$($SB status --workdir "$W" -o env 2>/dev/null | grep -E '^(API_URL|DB_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
 export TARGET_DB_URL="$DB_URL"
 sqlv() { psql "$DB_URL" -AtXq -v ON_ERROR_STOP=1 -c "$1"; }
