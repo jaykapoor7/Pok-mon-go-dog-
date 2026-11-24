@@ -6,6 +6,11 @@
 --      (e.g. a trigger on auth.users). Supabase's own triggers are skipped.
 --   3. pg_cron jobs, re-created through cron.schedule (cron.job rows are not
 --      restored directly: the table is platform-owned).
+--   4. Materialized views: a schema dump creates them WITH NO DATA and a data
+--      dump never refreshes them, so after a restore they are unpopulated:
+--      reads fail and REFRESH ... CONCURRENTLY jobs fail forever. Every view
+--      populated in the source is refreshed here (found by the first
+--      production restore drill, 24 Nov 2026).
 -- Applied after the data, with normal trigger behaviour. Read-only.
 -- Run with: psql -AtX -f gen-platform.sql
 set search_path to pg_catalog;
@@ -49,3 +54,13 @@ select case when j.jobname is null
 from cron.job j
 order by j.jobname nulls last, j.jobid;
 \endif
+
+select format('refresh materialized view %I.%I;', n.nspname, c.relname)
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where c.relkind = 'm' and c.relispopulated
+  and n.nspname !~ '^(pg_|_timescaledb_|timescaledb_)'
+  and n.nspname not in ('information_schema', '_analytics', '_realtime', '_supavisor', 'auth', 'etl', 'extensions',
+    'pgbouncer', 'realtime', 'storage', 'supabase_functions', 'supabase_migrations', 'cron', 'dbdev', 'graphql',
+    'graphql_public', 'net', 'pgmq', 'pgsodium', 'pgsodium_masks', 'pgtle', 'repack', 'tiger', 'tiger_data',
+    'topology', 'vault')
+order by c.oid;  -- creation order, so a view built on another is refreshed after it

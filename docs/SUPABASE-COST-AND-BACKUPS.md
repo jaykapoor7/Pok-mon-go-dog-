@@ -93,6 +93,8 @@ Project refs, URLs, API keys, JWT secret and pooler URIs **do not change** on a 
 | Extensions | Schema `extensions` is excluded | PostGIS, pgvector and http are not created, so the restore fails at the first geometry column | `extensions.sql` |
 | pg_cron jobs | Schema `cron` is excluded; `cron.job` is platform-owned | The 5 production jobs (map refresh, mission tick…) never run | `platform.sql` via `cron.schedule` |
 | Cron run history, Realtime messages | Operational or ephemeral | None (not needed) | Deliberately excluded |
+| **Materialized views left empty** | A schema dump creates them `WITH NO DATA`; a data dump never refreshes them | `public_spatial_animals_cache` (the public map cache) is unpopulated. Map reads fail, and the 15-minute `REFRESH … CONCURRENTLY` job fails forever. Found by the first production drill. | `platform.sql` refreshes every view populated in the source; the fingerprint records it |
+| Auth/Storage service versions differ | Source and target run different Auth/Storage versions | The restore stops on an unknown column. Production's `auth.one_time_tokens.link_token_hash` is missing from the CLI's local stack. | For `auth.*`/`storage.*` only, load the target's columns and report what was left out (counts of non-empty values). Our schemas stay strict. |
 | Vault secrets | Encrypted with a per-project key | Cannot be restored | Both projects hold 0; the backup **fails** if any appear |
 | Storage file bytes | Not in Postgres | Files missing | `storage-backup.mjs` + metadata reconcile |
 | Project settings | Outside Postgres (Auth providers/SMTP/URLs, API settings, Edge Function secrets) | Must be re-entered | Recorded in the restore procedure below |
@@ -109,6 +111,19 @@ Included as-is: all application schemas (`public`, `private`, `health`, `straypa
 | **Backup verification** (PR check) | The real recovery path: dump → encrypt → upload artifact → **download** → decrypt → restore → full drill. Uses a throwaway key that dies with the runner, so the uploaded copy (1 day) is undecryptable. | Every PR that changes backup code | PR checks |
 
 CI logs here are public, so failed restore rows are reported as table + SQLSTATE only, never values. Storage logs name buckets, not files.
+
+Two side effects of restoring a dump are not differences. Definitions written with `BETWEEN` or chained `AND`s come back with flattened brackets, so expression definitions are compared without brackets or whitespace. Function bodies and indexes stay exact.
+
+**First production restore drill: passed on 24 Nov 2026.** Run 45331499481 recovered from the downloaded, encrypted artifact:
+
+- 194 tables and 30,635 rows matched.
+- All 2,906 structure, privilege and policy items matched.
+- The Auth server listed all 12 accounts.
+- Anon was refused on `dogs` (HTTP 401) and served `public_animal_profiles` (HTTP 200).
+- Database 77 MB of 500 MB; Storage 237 MB of 1 GB; largest file 8.7 MB.
+- Under 1 CPU / 0.5 GB limits, `refresh_map_snapshots` ran in 399 ms and the public reads in 11–24 ms.
+
+Left out as Auth/Storage version differences: 2 Auth columns holding 0 values, and 2 newer Storage tables. Storage files were not part of this run (secrets not yet set).
 
 ### Alerts
 

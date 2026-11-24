@@ -27,7 +27,7 @@ with _us as (
 )
 -- Relations: kind, RLS switches, options, columns
 select 'relation', n.nspname || '.' || c.relname,
-       md5(concat_ws('|', c.relkind, c.relrowsecurity, c.relforcerowsecurity, array_to_string(c.reloptions, ','),
+       md5(concat_ws('|', c.relkind, c.relrowsecurity, c.relforcerowsecurity, c.relispopulated, array_to_string(c.reloptions, ','),
          (select string_agg(concat_ws(':', a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull, a.attidentity,
                    a.attgenerated, pg_get_expr(d.adbin, d.adrelid)), ';' order by a.attnum)
             from pg_attribute a left join pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum

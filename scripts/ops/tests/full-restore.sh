@@ -51,6 +51,8 @@ revoke all on public.dogs from anon;                               -- production
 create table public.open_t(id int); create table private.secrets(k text);
 grant select (id) on public.open_t to anon;  revoke insert on public.open_t from authenticated;
 create view public.public_dogs as select id, name from public.dogs;
+create materialized view public.dogs_cache as select id, name from public.dogs;
+create unique index on public.dogs_cache(id);
 grant select on public.public_dogs to anon;
 create function public.admin_wipe() returns void language sql security definer as 'select 1';
 revoke all on function public.admin_wipe() from public, anon, authenticated;
@@ -89,6 +91,7 @@ grep -q "auth.users	column link_token_hash" "$S/restore.log" && grep -q "auth.ne
 [ "$(has dst "select has_table_privilege('anon','public.dogs','select')")" = f ] && ok "anon still cannot read dogs after restore" || bad "anon can read dogs"
 [ "$(has dst "select has_function_privilege('anon','public.admin_wipe()','execute')")" = f ] && ok "anon still cannot execute admin_wipe()" || bad "anon can execute admin_wipe"
 [ "$(has dst "select has_column_privilege('anon','public.open_t','id','select')")" = t ] && ok "column grant preserved" || bad "column grant lost"
+[ "$(has dst "select relispopulated from pg_class where oid='public.dogs_cache'::regclass")" = t ] && [ "$(has dst "select count(*) from public.dogs_cache")" -gt 0 ] && psql -q "$U/dst" -c "refresh materialized view concurrently public.dogs_cache" && ok "materialized view populated after restore; concurrent refresh works" || bad "materialized view left empty"
 [ "$(has dst "select count(*) from pg_policy where polrelid='storage.objects'::regclass")" = 2 ] && ok "Storage policies restored" || bad "storage policies"
 [ "$(has dst "select count(*) from pg_trigger where tgname='on_auth_user_created'")" = 1 ] && ok "auth.users trigger restored" || bad "auth trigger"
 [ "$(has dst "select count(*) from auth.users")" = 12 ] && [ "$(has dst "select count(*) from public.dogs where name like 'signup:%'")" = "$(has src "select count(*) from public.dogs where name like 'signup:%'")" ] && ok "auth users restored without re-firing the signup trigger" || bad "auth users / trigger refire"
