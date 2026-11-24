@@ -121,6 +121,7 @@ jobs:
           if [ "$MODE" = verify ]; then rm -rf "$RUNNER_TEMP/splain"; fi
 
       - name: Upload encrypted backup
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.target }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -129,8 +130,23 @@ jobs:
           if-no-files-found: error
 
       # verify mode: recover exactly as the owner would — from the uploaded artifact.
+      # Download by the exact artifact id the upload returned: looking it up by
+      # name right after upload is not always consistent ("Artifact not found").
       - name: Download the artifact again
+        id: download
         if: inputs.mode == 'verify'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.upload.outputs.artifact-id }}
+          path: ${{ runner.temp }}/downloaded
+
+      - name: Wait before retrying the download
+        if: inputs.mode == 'verify' && steps.download.outcome == 'failure'
+        run: sleep 30
+
+      - name: Download the artifact again (retry)
+        if: inputs.mode == 'verify' && steps.download.outcome == 'failure'
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.target }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -140,11 +156,11 @@ jobs:
         if: inputs.mode == 'verify'
         run: |
           rm -rf "$RUNNER_TEMP/plain" "$RUNNER_TEMP/out"
-          db="$(ls "$RUNNER_TEMP"/downloaded/*.tar.gz.age)"
+          db="$(find "$RUNNER_TEMP/downloaded" -name '*.tar.gz.age' | head -1)"
           CHECK_ONLY=1 AGE_IDENTITY_FILE="$RUNNER_TEMP/throwaway.key" bash scripts/ops/db-restore.sh "$db" | tail -1 | tee -a "$GITHUB_STEP_SUMMARY"
           mkdir -p "$RUNNER_TEMP/plain" "$RUNNER_TEMP/splain"
           age -d -i "$RUNNER_TEMP/throwaway.key" "$db" | tar -C "$RUNNER_TEMP/plain" -xzf -
-          for s in "$RUNNER_TEMP"/downloaded/*-storage-*.tar.age; do
+          for s in $(find "$RUNNER_TEMP/downloaded" -name '*-storage-*.tar.age'); do
             [ -f "$s" ] && age -d -i "$RUNNER_TEMP/throwaway.key" "$s" | tar -C "$RUNNER_TEMP/splain" -xf -
           done
           echo "Recovered from the downloaded, encrypted artifact." >> "$GITHUB_STEP_SUMMARY"
