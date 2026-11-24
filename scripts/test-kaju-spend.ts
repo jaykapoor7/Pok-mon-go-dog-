@@ -155,7 +155,7 @@ async function main() {
     ok("a tool the model invents is refused as an error result; nothing is written");
 
     reset([
-      { stop: "tool_use", content: [{ type: "tool_use", id: "t1", name: "propose_task", input: { title: "Call the vet about Bholu", due_on: "2026-11-20" } }] },
+      { stop: "tool_use", content: [{ type: "tool_use", id: "t1", name: "propose_task", input: { title: "Call the vet about Bholu", due_on: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10) } }] },
       { stop: "end_turn", content: [{ type: "text", text: "Here is what I made: one task. Review and press Confirm." }] },
     ]);
     r = await answer([{ role: "user", text: "remind me to call the vet friday" }], ctx, {});
