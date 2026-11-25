@@ -1,0 +1,42 @@
+{
+  "rows": 16,
+  "distinct_tags": 15,
+  "not_on_register": [
+    "KOR-141"
+  ],
+  "repeated_in_document": [
+    "HSR-103"
+  ],
+  "date_differs": [
+    {
+      "tag": "IND-102",
+      "document": "2026-10-08",
+      "straypaw": "2026-10-06"
+    }
+  ],
+  "status_differs": [
+    {
+      "tag": "YEL-128",
+      "document": "sterilised",
+      "straypaw": "not_sterilised"
+    },
+    {
+      "tag": "WHI-117",
+      "document": "sterilised + ARV",
+      "straypaw": "status unknown; sterilisation event 2026-11-07; no vaccination"
+    },
+    {
+      "tag": "YEL-118",
+      "document": "sterilised 2026-11-10",
+      "straypaw": "no procedure recorded"
+    }
+  ],
+  "on_straypaw_not_in_document": [
+    "IND-112",
+    "HSR-113",
+    "JAY-114",
+    "BTM-115",
+    "MAL-116"
+  ],
+  "claimed_total_in_letter": 18
+}
