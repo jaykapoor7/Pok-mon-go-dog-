@@ -97,10 +97,20 @@ export function tableToText(html: string) {
 }
 type Block = { text?: string; layout_tag?: string; reading_order?: number };
 type ParseResult = { documents?: { page_count?: number; pages?: { page_num?: number; blocks?: Block[] }[]; error?: { message?: string } }[] };
+/** A block's words with its own line breaks kept. A table comes back as HTML or as pipe-separated rows; either way each
+    row becomes one line of tab-separated cells, so a person and the fixed rules can both read it. */
+function blockText(raw: string) {
+  if (/<table/i.test(raw)) return tableToText(raw);
+  return raw.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .split(/\r?\n/).map((line) => {
+      const l = line.replace(/[ \t]+/g, " ").trim();
+      if (/^\|?\s*:?-{2,}/.test(l) && /^[\s|:-]+$/.test(l)) return "";
+      return /^\|.*\|$/.test(l) ? l.slice(1, -1).split("|").map((c) => c.trim()).join("\t") : l;
+    }).filter(Boolean).join("\n");
+}
 export function parseResultText(result: ParseResult) {
   const pages = (result.documents ?? []).flatMap((d) => d.pages ?? []);
-  const text = pages.map((p) => (p.blocks ?? []).slice().sort((a, b) => (a.reading_order ?? 0) - (b.reading_order ?? 0))
-    .map((b) => (/<table/i.test(b.text ?? "") ? tableToText(b.text ?? "") : cell(b.text ?? ""))).filter(Boolean).join("\n")).join("\n\n");
+  const text = pages.map((p) => (p.blocks ?? []).slice().sort((a, b) => (a.reading_order ?? 0) - (b.reading_order ?? 0)).map((b) => blockText(b.text ?? "")).filter(Boolean).join("\n")).join("\n\n");
   return { text, pages: pages.length };
 }
 

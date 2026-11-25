@@ -50,6 +50,8 @@ ok("Sarvam stays closed without a key and an approval that names the use");
 assert.equal(tableToText("<table><tr><th>Tag</th><th>Date</th></tr><tr><td>KOR-101</td><td>03-10-2026</td></tr></table>"), "Tag\tDate\nKOR-101\t03-10-2026");
 const scan = parseResultText({ documents: [{ pages: [{ blocks: [{ text: "<table><tr><td>IND-102</td><td>08-10-2026</td></tr></table>", reading_order: 2 }, { text: "ABC register", reading_order: 1 }] }] }] });
 assert.equal(scan.pages, 1); assert.equal(scan.text, "ABC register\nIND-102\t08-10-2026"); assert.equal(rowsFromText(scan.text)[0].tag, "IND-102");
+const md = parseResultText({ documents: [{ pages: [{ blocks: [{ text: "Period: 01-10-2026 to 15-11-2026\n| Sl | Tag No. | Date |\n|---|---|---|\n| 1 | KOR-101 | 03-10-2026 |\n| 2 | IND-102 | 08-10-2026 |\nTotal entries: 2", reading_order: 1 }] }] }] });
+assert.equal(md.text.split("\n").length, 5); assert.deepEqual(rowsFromText(md.text).map((x) => x.tag), ["KOR-101", "IND-102"]); assert.deepEqual(periodFromText(md.text), { from: "2026-10-01", to: "2026-11-15" });
 ok("a scanned page's blocks become lines in reading order, tables as rows the rules can read");
 
 console.log(`\n${n} checks passed`);
