@@ -2,7 +2,9 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, CornerDownLeft, Loader2, Mic, Sparkles, X } from "lucide-react";
+import { AlertCircle, ChevronDown, CornerDownLeft, FileSpreadsheet, FileText, Loader2, Mic, Paperclip, ScanLine, Sparkles, Square, X } from "lucide-react";
+import { MAX_FILES, useKaju, type AttachedFile } from "./state";
+import { LANGUAGE_NAMES } from "./speech";
 import type { Intent } from "@/lib/kaju/registry";
 import { readSentence, toIntent, type Kind, type Span, type Vocab } from "./intent";
 
@@ -17,6 +19,15 @@ const KIND_WORD: Record<Kind, string> = { Place: "Place", Person: "Person", Team
 const QUESTION = /\?\s*$|^\s*(what|which|who|whom|whose|when|where|why|how|is|are|was|were|can|could|do|does|did|should|will|would|show|list|tell me|explain)\b/i;
 const WORK = /^\s*(please\s+)?(prepare|plan|create|make|send|post|notify|remind|assign|schedule|draft|set up|organi[sz]e|arrange|follow up|coordinate|get|book|ask|email|write to|tell)\b/i;
 export const looksLikeWork = (t: string) => WORK.test(t) && !QUESTION.test(t);
+const ACCEPT = ".pdf,.docx,.xlsx,.xls,.csv,.pptx,.jpg,.jpeg,.png,.webp,.tif,.tiff";
+/* What a chip says about a file once it has been read: its size in pages or rows, and how it was read. */
+function fileLine(f: AttachedFile) {
+  if (f.state === "reading") return "Reading…";
+  if (f.state === "failed") return f.error ?? "Could not be read";
+  const how = f.read === "sarvam_vision" || f.read === "model_vision" ? "scan read" : f.kind === "xlsx" || f.kind === "csv" ? "sheet read" : "read";
+  return `${f.pages ? `${f.pages} ${f.pages === 1 ? "page" : "pages"} · ` : ""}${how}`;
+}
+const FileIcon = ({ f }: { f: AttachedFile }) => f.state === "reading" ? <Loader2 size={14} className="nx-spin" aria-hidden /> : f.state === "failed" ? <AlertCircle size={14} aria-hidden /> : f.read && f.read !== "text" ? <ScanLine size={14} aria-hidden /> : f.kind === "xlsx" || f.kind === "csv" ? <FileSpreadsheet size={14} aria-hidden /> : <FileText size={14} aria-hidden />;
 const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false, modelPlanning = false, onVoice }: {
@@ -32,6 +43,15 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
   const [menu, setMenu] = useState<Kind | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const calm = useReducedMotion();
+  const { files, attach, detach, speech, keeping } = useKaju();
+  const picker = useRef<HTMLInputElement>(null);
+  const [over, setOver] = useState(false);
+  /* Files and speech belong to a signed-in person's own conversation; they are not offered where conversations are not kept. */
+  const canAttach = keeping === "on" && !disabled;
+  const add = (list: FileList | File[] | null | undefined) => { if (!canAttach || !list) return; Array.from(list).slice(0, MAX_FILES - files.length).forEach((f) => void attach(f)); };
+  const filesReading = files.some((f) => f.state === "reading");
+  const attached = files.some((f) => f.state === "ready");
+  const talkHere = speech.offered && keeping === "on";
   useEffect(() => { if (initial) setText(initial); }, [initial]);
   /* Words typed before the page finished loading (a slow phone) are already in the box: keep them, so Enter sends what
      the person sees rather than nothing. */
@@ -62,8 +82,9 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
   const single = reading.action === "create_task";
   const isTask = (!!reading.action && reading.action !== "ask" && !single && canPlan) || free;
   const submit = () => {
-    const t = text.trim(); if (!t || busy) return;
-    if (single) onAsk(t);
+    const t = text.trim(); if (!t || busy || filesReading) return;
+    /* A question about an attached file is always answered in the conversation, never planned as a mission. */
+    if (attached || single) onAsk(t);
     else if (free) onPlan(t, null);
     else if (isTask) { if (!intent) { box.current?.focus(); return; } onPlan(t, intent); }
     else onAsk(t);
@@ -79,17 +100,24 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
   const caret = () => { const at = box.current?.selectionStart ?? -1; const s = reading.spans.find((x) => at >= x.start && at <= x.end); setMenu(s ? s.kind : null); };
   const marked = useMemo(() => { const parts: React.ReactNode[] = []; let at = 0; reading.spans.forEach((s, i) => { if (s.start < at) return; parts.push(text.slice(at, s.start), <u key={i} className={s.ambiguous ? "is-amb" : undefined}>{text.slice(s.start, s.end)}</u>); at = s.end; }); parts.push(text.slice(at)); return parts; }, [text, reading.spans]);
   const open = menu ? reading.spans.find((s) => s.kind === menu) ?? null : null;
-  const status = !text.trim() ? (predictive ? "Kaju underlines what it recognises as you type. Nothing is sent until you press the button." : "Type a question or a request.")
+  const voiceStatus = speech.phase === "listening" ? "Listening. Speak now; I stop when you pause." : speech.phase === "hearing" ? "Turning what you said into text…" : speech.phase === "speaking" ? "Reading the answer aloud. Tap the microphone to stop." : speech.error;
+  const status = talkHere && voiceStatus ? voiceStatus : filesReading ? "Reading the file. It stays in this conversation; nothing is saved to your records." : attached && !text.trim() ? "Ask about the attached file: “Check this against our register”, “Summarise this letter”, “What does it ask us to do?”"
+    : !text.trim() ? (predictive ? "Kaju underlines what it recognises as you type. Nothing is sent until you press the button." : "Type a question or a request.")
     : free ? "Kaju will plan this with a model. You see every step, and who does it, before anything starts."
     : work ? "On this deployment Kaju plans from its fixed jobs: pick one below, or press Ask for an answer from your records."
     : reading.missing.length ? reading.missing[0] : reading.preview;
 
   return (
-    <form className={`nx-ask nx-composer ${compact ? "is-compact" : ""}`} onSubmit={(e) => { e.preventDefault(); go(box.current?.value); }}>
+    <form className={`nx-ask nx-composer ${compact ? "is-compact" : ""}${over ? " is-over" : ""}`} onSubmit={(e) => { e.preventDefault(); go(box.current?.value); }}
+      onDragOver={(e) => { if (canAttach && e.dataTransfer.types.includes("Files")) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)}
+      onDrop={(e) => { if (!canAttach || !e.dataTransfer.files.length) return; e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}>
+      {files.length ? <ul className="kj-files" aria-label="Attached files">
+        {files.map((f) => <li key={f.id} className={`kj-file is-${f.state}`}><FileIcon f={f} /><span className="kj-file-n" title={f.name}>{f.name}</span><span className="kj-file-s" role={f.state === "failed" ? "alert" : "status"}>{fileLine(f)}</span><button type="button" className="nx-ib is-sm" aria-label={`Remove ${f.name}`} onClick={() => detach(f.id)}><X size={12} /></button></li>)}
+      </ul> : null}
       <div className="nx-ask-in">
         <div aria-hidden>{marked}{"\n"}</div>
         <textarea ref={box} rows={compact ? 1 : 2} value={text} autoFocus={autoFocus} maxLength={2000} disabled={disabled}
-          onChange={(e) => setText(e.target.value)} onClick={caret} onKeyUp={(e) => { if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End") caret(); }}
+          onChange={(e) => setText(e.target.value)} onClick={caret} onPaste={(e) => { if (canAttach && e.clipboardData.files.length) { e.preventDefault(); add(e.clipboardData.files); } }} onKeyUp={(e) => { if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End") caret(); }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); go(e.currentTarget.value); }
             else if (e.key === "Escape" && menu) { e.stopPropagation(); setMenu(null); }
@@ -112,8 +140,16 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
         {reading.spans.length && !compact ? <span className="nx-kread" aria-label="What Kaju understood">
           {reading.spans.map((s) => <button key={s.kind} type="button" className={`nx-span ${s.ambiguous ? "is-amb" : ""}`} onClick={() => setMenu(menu === s.kind ? null : s.kind)} aria-expanded={menu === s.kind} aria-label={`${KIND_WORD[s.kind]}: ${s.options[0]?.label ?? s.text}. Change`}><small>{KIND_WORD[s.kind]}</small>{s.ambiguous ? `${s.text}?` : s.options[0]?.label ?? s.text}<ChevronDown size={11} /></button>)}
         </span> : null}
-        {onVoice ? <button type="button" className="nx-ib kj-mic" aria-label="Talk to Kaju" onClick={onVoice}><Mic size={20} aria-hidden /></button> : null}
-        <button type="submit" className="nx-btn is-sm kj-send" disabled={!text.trim() || !!busy || (isTask && !free && !intent)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
+        {canAttach ? <>
+          <input ref={picker} type="file" accept={ACCEPT} multiple hidden tabIndex={-1} onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+          <button type="button" className="nx-ib kj-attach" aria-label="Attach a file" title="Attach a PDF, a scan, a photo of a register or a spreadsheet" disabled={files.length >= MAX_FILES} onClick={() => picker.current?.click()}><Paperclip size={17} aria-hidden /></button>
+        </> : null}
+        {talkHere ? <button type="button" className={`nx-ib kj-mic kj-talk is-${speech.phase}`} style={{ ["--kj-level" as string]: speech.level.toFixed(2) }} aria-pressed={speech.phase === "listening"} disabled={speech.phase === "hearing" || (!!busy && speech.phase === "idle")}
+          aria-label={speech.phase === "listening" ? "Stop and send what I said" : speech.phase === "speaking" ? "Stop reading aloud" : "Speak to Kaju"} title={`Speak in ${Object.values(LANGUAGE_NAMES).slice(0, 3).join(", ")} or another Indian language`} onClick={speech.talk}>
+          {speech.phase === "hearing" ? <Loader2 size={18} className="nx-spin" aria-hidden /> : speech.phase === "listening" || speech.phase === "speaking" ? <Square size={15} aria-hidden /> : <Mic size={20} aria-hidden />}
+        </button>
+          : onVoice ? <button type="button" className="nx-ib kj-mic" aria-label="Talk to Kaju" onClick={onVoice}><Mic size={20} aria-hidden /></button> : null}
+        <button type="submit" className="nx-btn is-sm kj-send" disabled={!text.trim() || !!busy || filesReading || (isTask && !free && !intent && !attached)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask && !attached ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
       </div>
     </form>
   );

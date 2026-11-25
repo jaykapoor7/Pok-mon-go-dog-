@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check as Tick, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUpRight, Check as Tick, FileSpreadsheet, FileText, Loader2, Mic, ScanLine, Square, ThumbsDown, ThumbsUp, Volume2 } from "lucide-react";
+import { LANGUAGE_NAMES } from "./speech";
 import { Blocks } from "./Blocks";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
@@ -13,7 +14,7 @@ import { DEMO_SITE } from "@/lib/demo-site";
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
 
-const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file", composed_report: "Report" };
 const day = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 const EXPOSURE: Record<string, string> = { bite: "Bite", scratch: "Scratch", lick_broken_skin: "Lick on broken skin", other: "Other contact" };
 const WASHED: Record<string, string> = { before_arrival: "washed before arrival", at_facility: "washed here", not_washed: "not washed" };
@@ -23,7 +24,13 @@ function bold(text: string) {
   return text.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) => (/^\*\*[^*\n]+\*\*$/.test(part) ? <b key={i}>{part.slice(2, -2)}</b> : part));
 }
 /** What a task or a bite record will hold, one fact per line, so the person checks each before confirming. Empty facts are said, not hidden. */
+const FILE_KINDS = new Set<Proposal["kind"]>(["composed_report", "report_file"]);
 function proposalFacts(p: Proposal): string[] {
+  if (p.kind === "composed_report") {
+    const figures = p.doc.sections.flatMap((x) => x.figures).slice(0, 4).map((f) => `${f.value} ${f.label.toLowerCase()}`).join(" · ");
+    const heads = p.doc.sections.map((x) => x.heading).filter(Boolean).slice(0, 5).join(" · ");
+    return [p.doc.addressedTo ? `For: ${p.doc.addressedTo}${p.doc.period ? ` · ${p.doc.period}` : ""}` : p.doc.period ?? "", figures, heads ? `Sections: ${heads}` : ""].filter(Boolean);
+  }
   if (p.kind === "add_task") return [`Due: ${p.dueOn ? day(p.dueOn) : "no date"}`, `For: ${p.assigneeName ?? "nobody yet"}`, `About: ${p.caseLabel ?? p.dogLabel ?? "no record"}`];
   if (p.kind === "register_exposure") return [
     `${p.facilityName} · ${EXPOSURE[p.exposureKind] ?? p.exposureKind} on ${day(p.exposureOn)}${p.exposureTime ? `, ${p.exposureTime}` : ""}${p.site ? ` · ${p.site}` : ""}`,
@@ -47,6 +54,7 @@ function proposalLine(p: Proposal) {
     case "chat_post": return `#${p.channelName}: ${p.text}`;
     case "sms": return `To ${p.to.length} ${p.to.length === 1 ? "person" : "people"}`;
     case "report_file": return `${p.title} (${p.format.toUpperCase()})`;
+    case "composed_report": { const rows = p.doc.sections.reduce((n, s) => n + (s.table?.rows.length ?? 0), 0); return `${p.title} · ${p.format === "docx" ? "Word" : p.format === "xlsx" ? "Excel" : "PDF"} · ${p.doc.sections.length} ${p.doc.sections.length === 1 ? "section" : "sections"}${rows ? `, ${rows} table rows` : ""}`; }
   }
 }
 
@@ -72,13 +80,13 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
   const saved = turn.saved?.[p.id];
   return (
     <div className="nx-kprop">
-      <div className="nx-kprop-h"><b>{PROPOSAL_WORD[p.kind]}</b><span className="nx-t3">Prepared, not saved</span></div>
+      <div className="nx-kprop-h"><b>{PROPOSAL_WORD[p.kind]}</b><span className="nx-t3">{FILE_KINDS.has(p.kind) ? "Prepared, not downloaded" : "Prepared, not saved"}</span></div>
       <p>{p.kind === "add_task" ? <b>{proposalLine(p)}</b> : proposalLine(p)}</p>
       {proposalFacts(p).map((f) => <p key={f} className="nx-t3">{f}</p>)}
       {p.why ? <p className="nx-t3">{p.why}</p> : null}
       <div className="nx-kprop-f">
         {saved?.ok ? <span className="nx-kok"><Tick size={12} strokeWidth={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
-          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
+          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{FILE_KINDS.has(p.kind) ? "Download" : "Confirm"}</button><span className="nx-t3">{FILE_KINDS.has(p.kind) ? "Built from what is shown here. Check it before it is signed or sent." : "Saved under your name, with Kaju\u2019s help noted."}</span></>}
         {saved && !saved.ok ? <span role="alert" className="nx-kerr">{saved.error}</span> : null}
       </div>
     </div>
@@ -118,7 +126,7 @@ function Rate({ t }: { t: Turn }) {
 }
 
 export function Thread({ compact }: { compact?: boolean }) {
-  const { turns, ask, stop, retry, page, busy } = useKaju();
+  const { turns, ask, stop, retry, page, busy, speech } = useKaju();
   const calm = useReducedMotion();
   const shown = compact ? turns.slice(-4) : turns;
   if (!turns.length) return null;
@@ -126,11 +134,16 @@ export function Thread({ compact }: { compact?: boolean }) {
     <ol className={`nx-kthread ${compact ? "is-compact" : ""}`} aria-label="Conversation with Kaju">
       {shown.map((t) => (
         <motion.li key={t.id} className={`nx-kturn is-${t.role}`} initial={calm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .16 }}>
-          {t.role === "user" ? <p className="nx-kq">{t.text}</p> : (
+          {t.role === "user" ? <div className="nx-kq-w">
+            {t.files?.length ? <ul className="kj-sent" aria-label="Files sent with this question">{t.files.map((f) => <li key={f.name}>{f.read && f.read !== "text" ? <ScanLine size={13} aria-hidden /> : f.kind === "xlsx" || f.kind === "csv" ? <FileSpreadsheet size={13} aria-hidden /> : <FileText size={13} aria-hidden />}<span>{f.name}</span>{f.pages ? <small>{f.pages} {f.pages === 1 ? "page" : "pages"}</small> : null}</li>)}</ul> : null}
+            <p className="nx-kq">{t.text}</p>
+            {t.spoken !== undefined ? <span className="kj-spoken"><Mic size={11} aria-hidden />Spoken{t.spoken && LANGUAGE_NAMES[t.spoken] ? ` · ${LANGUAGE_NAMES[t.spoken]}` : ""} · transcript saved</span> : null}
+          </div> : (
             <div className="nx-ka">
               <span className="nx-ka-i is-face"><KajuFace size={22} /></span>
               <div>
                 {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"} <button type="button" className="nx-link" onClick={stop}>Stop waiting</button></p> : null}
+                {t.pending && t.text ? <div className="kj-writing" aria-hidden><KText text={t.text} /></div> : null}
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
                   <KText text={t.reply.text} />
@@ -141,6 +154,7 @@ export function Thread({ compact }: { compact?: boolean }) {
                   {!compact && t.reply.tools?.length ? <details className="nx-ktools"><summary>What Kaju checked ({t.reply.tools.length})</summary><ul>{t.reply.tools.map((x, i) => <li key={i} className={x.ok ? "" : "is-bad"}>{x.summary}</li>)}</ul></details> : null}
                   {t.reply.suggestions?.length ? <div className="nx-ksugg">{t.reply.suggestions.slice(0, 3).map((s) => <button key={s} type="button" onClick={() => void ask(s)}>{s}</button>)}</div> : null}
                   <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}{t.restored ? " · From a saved conversation" : ""}</p>
+                  {speech.offered && t.reply.text.trim() ? <button type="button" className={`nx-chipbtn kj-listen${speech.speakingTurn === t.id ? " is-on" : ""}`} aria-pressed={speech.speakingTurn === t.id} onClick={() => speech.listen(t.id)}>{speech.speakingTurn === t.id ? <><Square size={11} aria-hidden />Stop</> : <><Volume2 size={13} aria-hidden />Listen</>}</button> : null}
                   {!t.restored ? <Rate t={t} /> : null}
                 </> : null}
               </div>

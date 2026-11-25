@@ -14,23 +14,14 @@
       "straypaw": "2026-10-06"
     }
   ],
-  "status_differs": [
-    {
-      "tag": "YEL-128",
-      "document": "sterilised",
-      "straypaw": "not_sterilised"
-    },
-    {
-      "tag": "WHI-117",
-      "document": "sterilised + ARV",
-      "straypaw": "status unknown; sterilisation event 2026-11-07; no vaccination"
-    },
-    {
-      "tag": "YEL-118",
-      "document": "sterilised 2026-11-10",
-      "straypaw": "no procedure recorded"
-    }
+  "status_not_updated": [
+    "WHI-117"
   ],
+  "not_recorded_on_register": [
+    "YEL-118",
+    "YEL-128"
+  ],
+  "agrees": 10,
   "on_straypaw_not_in_document": [
     "IND-112",
     "HSR-113",

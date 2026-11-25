@@ -12,6 +12,17 @@ export function safeAiHref(v:unknown):v is string {
   if(v.startsWith('/')&&!v.startsWith('//'))return true;
   try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password}catch{return false}
 }
+/** A composed report as the server cut it: a title and up to eight sections of bounded strings. */
+export function composed(d:unknown):boolean{
+ if(!object(d)||!text(d.title,160)||!d.title||!Array.isArray(d.sections)||!d.sections.length||d.sections.length>8)return false;
+ if(!['eyebrow','addressedTo','period'].every(k=>d[k]===undefined||text(d[k],200)))return false;
+ if(!Array.isArray(d.notes)||d.notes.length>6||!d.notes.every(n=>text(n,500)))return false;
+ return d.sections.every(s=>object(s)&&(s.heading===undefined||text(s.heading,160))
+  &&Array.isArray(s.figures)&&s.figures.length<=6&&s.figures.every(f=>object(f)&&text(f.label,80)&&text(f.value,60))
+  &&Array.isArray(s.paragraphs)&&s.paragraphs.length<=6&&s.paragraphs.every(x=>text(x,1600))
+  &&(s.table===undefined||(object(s.table)&&Array.isArray(s.table.columns)&&s.table.columns.length>0&&s.table.columns.length<=8&&s.table.columns.every(c=>text(c,80))&&(s.table.caption===undefined||text(s.table.caption,200))
+   &&Array.isArray(s.table.rows)&&s.table.rows.length<=120&&s.table.rows.every(r=>Array.isArray(r)&&r.length<=8&&r.every(c=>text(c,240))))));
+}
 function proposal(p:unknown):p is Proposal {
  if(!object(p)||!text(p.id,128)||!p.id||!text(p.why))return false;
  const has=(...keys:string[])=>keys.every(k=>text(p[k]));
@@ -26,6 +37,7 @@ function proposal(p:unknown):p is Proposal {
    &&(p.category===null||['I','II','III'].includes(String(p.category)))&&(p.ageBand===null||['0-4','5-14','15-29','30-49','50+'].includes(String(p.ageBand)))&&(p.sex===null||['female','male'].includes(String(p.sex)))
    &&(p.woundWashed===null||['before_arrival','at_facility','not_washed'].includes(String(p.woundWashed)))&&['dog','cat','cattle','monkey','wildlife','other','unknown'].includes(String(p.species))
    &&['community','owned','unknown'].includes(String(p.ownership))&&typeof p.reminderConsent==='boolean'&&['exposureTime','site','patientRef','ageText','animalPlace','areaId','areaName','contactPhone'].every(k=>nullable(p[k]));
+  case 'composed_report':return has('title')&&['pdf','docx','xlsx'].includes(String(p.format))&&composed(p.doc);
   case 'report_file':return has('title')&&['pdf','docx','xlsx','csv','pptx','geojson','kml'].includes(String(p.format))&&['open_cases','animals','verification','operations_checks','programme_summary'].includes(String(p.source))&&(p.saveTo===null||['google','microsoft','slack','zoho'].includes(String(p.saveTo)))&&nullable(p.saveToName);
   case 'email':return provider()&&has('providerName','subject','body')&&strings(p.to)&&strings(p.cc)&&typeof p.send==='boolean';
   case 'calendar_event':return provider()&&has('providerName','title','start','end')&&strings(p.attendees)&&nullable(p.location);

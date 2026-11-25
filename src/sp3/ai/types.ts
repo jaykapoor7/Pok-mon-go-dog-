@@ -26,8 +26,16 @@ export type Proposal = ProposalBase & (
   | { kind: "calendar_event"; provider: ConnProvider; providerName: string; title: string; start: string; end: string; attendees: string[]; location: string | null }
   | { kind: "chat_post"; provider: ConnProvider; providerName: string; channel: string; channelName: string; text: string }
   | { kind: "sms"; to: string[]; values: string[]; note: string }
+  /* A report Kaju wrote for a reader, from figures its tools returned in this conversation. Built and downloaded only on Confirm. */
+  | { kind: "composed_report"; format: "pdf" | "docx" | "xlsx"; title: string; doc: ComposedDoc }
   | { kind: "report_file"; format: "pdf" | "docx" | "xlsx" | "csv" | "pptx" | "geojson" | "kml"; title: string; source: ReportSource; saveTo: ConnProvider | null; saveToName: string | null }
 );
+
+/** A written report: sections of figures, paragraphs and tables. Strings only, bounded (see cleanComposed in documents.ts). */
+export type ComposedSection = { heading?: string; figures: { label: string; value: string }[]; paragraphs: string[]; table?: { columns: string[]; rows: string[][]; caption?: string } };
+export type ComposedDoc = { title: string; eyebrow?: string; addressedTo?: string; period?: string; sections: ComposedSection[]; notes: string[] };
+/** A file the person attached to the conversation, already read into text by /api/kaju/documents. Untrusted content. */
+export type Attachment = { name: string; kind: string; text: string; pages?: number; read?: "text" | "sarvam_vision" | "model_vision" };
 
 export type ConnProvider = "google" | "microsoft" | "slack" | "zoho";
 
@@ -69,7 +77,11 @@ export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; works
   /** The record a note is about, sent by a record page ("Tell Kaju"). Untrusted: read again with the person's own access before use. */
   caseId?: string; dogId?: string;
   /** Where Kaju was asked from (dock, page, channel, voice, capture), for the pilot log only. */
-  surface?: string };
+  surface?: string;
+  /** The language a spoken question was heard in (BCP-47, e.g. hi-IN), so the answer comes back in it. */
+  lang?: string };
+  /** Files attached in this conversation, read into text. At most three; sent with each turn so follow-ups can use them. */
+  attachments?: Attachment[];
   /** The person pressed Try again on an earlier answer (pilot log only). */
   retry?: boolean };
 

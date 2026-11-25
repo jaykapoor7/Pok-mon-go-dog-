@@ -35,7 +35,7 @@ import type { CaseQuery } from "./understand";
 
 export type ToolProgress = { tool: string; summary: string; ok: boolean };
 export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; /** Email or phone confirmed, per the auth server. */ userVerified?: boolean;
-  /** The server's service-role connection, used only to reserve and settle model spend. Never used for record reads. */ admin?: unknown; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void;
+  /** The server's service-role connection, used only to reserve and settle model spend. Never used for record reads. */ admin?: unknown; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void; /** Called with the answer so far while a model writes it. Display only. */ delta?: (text: string) => void;
   /** The workspace the page says the person is in ("ngo", "healthcare", …). A hint for wording and for which organisation a task belongs to; never a permission. */ workspace?: string | null;
   /** The record a page sent ("Tell Kaju" on a case or animal). Read again with the person's own access before use. */ subject?: { caseId?: string | null; dogId?: string | null } };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };

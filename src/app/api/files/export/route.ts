@@ -3,7 +3,9 @@ import { caller } from "@/lib/connections/server";
 import { makeFile, type FileKind } from "@/lib/files/native";
 import { buildReport } from "@/lib/files/reports";
 import { allowUserRequest } from "@/lib/rate-limit";
-import { REPORT_SOURCES, type ReportSource } from "@/sp3/ai/types";
+import { REPORT_SOURCES, type ComposedDoc, type ReportSource } from "@/sp3/ai/types";
+import { composed } from "@/sp3/ai/validation";
+import { makeComposedFile } from "@/lib/files/composed";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +21,16 @@ export async function POST(req: Request) {
   if (!(await allowUserRequest(c.db, "file-export"))) return NextResponse.json({ error: "Exports or files are temporarily limited. Try again shortly." }, { status: 429 });
   if (!c.ngoId) return NextResponse.json({ error: "Reports need an organisation workspace." }, { status: 403 });
   const b = await req.json().catch(() => ({}));
+  /* A report Kaju wrote in the conversation: the same template, built from the sections the person confirmed. Its content
+     came from their own conversation and returns only to them; nothing is read or written here. */
+  if (b.document !== undefined) {
+    if (!["pdf", "docx", "xlsx"].includes(b.format) || !composed(b.document) || JSON.stringify(b.document).length > 400_000) return NextResponse.json({ error: "That report could not be made. Ask Kaju to prepare it again." }, { status: 400 });
+    try {
+      const org = await c.db.from("ngos").select("name").eq("id", c.ngoId).maybeSingle();
+      const f = await makeComposedFile(b.format, b.document as ComposedDoc, (org.data as { name?: string } | null)?.name ?? null);
+      return new NextResponse(new Uint8Array(f.bytes), { headers: { "Content-Type": f.mime, "Content-Disposition": `attachment; filename="${f.filename}"`, "Cache-Control": "no-store" } });
+    } catch { return NextResponse.json({ error: "That report could not be made. Ask Kaju to prepare it again." }, { status: 400 }); }
+  }
   const format = FORMATS.includes(b.format) ? (b.format as FileKind) : null;
   const source = REPORT_SOURCES.includes(b.source) ? (b.source as ReportSource) : null;
   if (!format || !source) return NextResponse.json({ error: "Choose a format and a report." }, { status: 400 });

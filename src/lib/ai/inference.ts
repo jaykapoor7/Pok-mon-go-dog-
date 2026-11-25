@@ -52,7 +52,8 @@ export function inferenceConfig(env: Record<string, string | undefined> = proces
   return { allowed: true, budget: {
     monthlyCeilingInr, perUserDaily, perOrgDaily, inrPerMTokIn, inrPerMTokOut,
     maxConcurrent: Math.min(num(env.STRAYPAW_AI_MAX_CONCURRENT) ?? 2, 8),
-    maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 4000),
+    /* The allowance covers the model's thinking as well as its words; a written report needs the higher end. */
+    maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 8000),
     runCapInr: Math.min(num(env.STRAYPAW_AI_RUN_MAX_INR) ?? 10, 100),
     maxSteps: Math.min(Math.floor(num(env.STRAYPAW_AI_MAX_STEPS) ?? 6), 6),
   } };

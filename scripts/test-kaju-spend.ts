@@ -77,7 +77,7 @@ async function main() {
   assert.ok(d.allowed); if (d.allowed) { assert.equal(d.budget.remainingInr, 10); assert.equal(runAllowanceInr(d.budget), 10); }
   ok("per-person and per-organisation monthly rupee budgets and daily caps, and the deployment ceiling, are each enforced; the least remaining applies; every rollout needs a verified account");
   const caps = inferenceConfig({ ...GR, STRAYPAW_AI_MAX_OUTPUT_TOKENS: "99999", STRAYPAW_AI_RUN_MAX_INR: "9999", STRAYPAW_AI_MAX_STEPS: "50", STRAYPAW_AI_MAX_CONCURRENT: "500" });
-  assert.ok(caps.allowed); if (caps.allowed) { assert.equal(caps.budget.maxOutputTokens, 4000); assert.equal(caps.budget.runCapInr, 100); assert.equal(caps.budget.maxSteps, 6); assert.equal(caps.budget.maxConcurrent, 8); }
+  assert.ok(caps.allowed); if (caps.allowed) { assert.equal(caps.budget.maxOutputTokens, 8000); assert.equal(caps.budget.runCapInr, 100); assert.equal(caps.budget.maxSteps, 6); assert.equal(caps.budget.maxConcurrent, 8); }
   const dflt = inferenceConfig(GR);
   assert.ok(dflt.allowed); if (dflt.allowed) { assert.equal(dflt.budget.maxOutputTokens, 2000); assert.equal(dflt.budget.runCapInr, 10); assert.equal(dflt.budget.maxConcurrent, 2); }
   ok("output tokens, per-answer cost, steps and concurrency have hard ceilings that settings cannot raise; defaults are conservative");
@@ -155,7 +155,7 @@ async function main() {
     ok("a tool the model invents is refused as an error result; nothing is written");
 
     reset([
-      { stop: "tool_use", content: [{ type: "tool_use", id: "t1", name: "propose_task", input: { title: "Call the vet about Bholu", due_on: "2026-11-20" } }] },
+      { stop: "tool_use", content: [{ type: "tool_use", id: "t1", name: "propose_task", input: { title: "Call the vet about Bholu", due_on: new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10) } }] },
       { stop: "end_turn", content: [{ type: "text", text: "Here is what I made: one task. Review and press Confirm." }] },
     ]);
     r = await answer([{ role: "user", text: "remind me to call the vet friday" }], ctx, {});

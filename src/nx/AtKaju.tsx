@@ -43,7 +43,7 @@ export const KAJU_SAVED = "nx:atkaju-saved";
    confirmed here, because only for them can this card say exactly what will be saved. Anything else is reviewed in Kaju. */
 type Prep = { id: string; kind: string; why?: string } & Record<string, unknown>;
 const HERE = new Set(["open_case", "add_note", "schedule_followup", "record_care", "add_task", "register_exposure"]);
-const WORD: Record<string, string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const WORD: Record<string, string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file", composed_report: "Report" };
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 const day = (iso: string | null) => { if (!iso) return null; const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso); return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }); };
 const bits = (xs: (string | null)[]) => xs.filter(Boolean).join(" · ");

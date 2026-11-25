@@ -6,34 +6,34 @@ const XLSX = require(path.join(__dirname, '..', 'node_modules', 'xlsx'));
 const { chromium } = require('playwright');
 const out = path.join(__dirname, 'fixtures');
 
-// tag, name, ward, sex, procedure date (dd-mm-yyyy), ARV date, remarks
+// tag, name, ward, sex, surgery date (dd-mm-yyyy), ARV given at surgery, remarks
 const ROWS = [
-  ['KOR-101', 'Bruno',  'Koramangala',  'M', '03-10-2026', '03-10-2026', ''],
-  ['IND-102', 'Kalu',   'Indiranagar',  'M', '08-10-2026', '08-10-2026', ''],            // StrayPaw: 06-10-2026  → date differs
-  ['HSR-103', 'Rani',   'HSR Layout',   'F', '09-10-2026', '09-10-2026', ''],
-  ['JAY-104', 'Tiger',  'Jayanagar',    'M', '13-10-2026', '13-10-2026', ''],
-  ['BTM-105', 'Moti',   'BTM Layout',   'M', '16-10-2026', '16-10-2026', ''],
-  ['MAL-106', 'Lucky',  'Malleshwaram', 'M', '21-10-2026', '21-10-2026', ''],
-  ['WHI-107', 'Sheru',  'Whitefield',   'M', '24-10-2026', '24-10-2026', ''],
-  ['YEL-108', 'Chotu',  'Yelahanka',    'M', '28-10-2026', '28-10-2026', ''],
-  ['HSR-103', 'Rani',   'HSR Layout',   'F', '09-10-2026', '09-10-2026', 'Re-entered'],  // repeated tag
-  ['BAN-109', 'Bhura',  'Banashankari', 'M', '01-11-2026', '01-11-2026', ''],
-  ['RAJ-110', 'Julie',  'Rajajinagar',  'F', '02-11-2026', '02-11-2026', ''],
-  ['KOR-111', 'Snowy',  'Koramangala',  'F', '03-11-2026', '03-11-2026', ''],
-  ['WHI-117', 'Coco',   'Whitefield',   'F', '07-11-2026', '07-11-2026', 'ARV given'],   // StrayPaw: status unknown, no vaccination
-  ['YEL-118', 'Ginger', 'Yelahanka',    'F', '10-11-2026', '10-11-2026', ''],            // StrayPaw: no procedure recorded
-  ['YEL-128', '',       'Yelahanka',    'M', '11-11-2026', '11-11-2026', 'Released same ward'], // StrayPaw: not sterilised
-  ['KOR-141', 'Rocky',  'Koramangala',  'M', '12-11-2026', '12-11-2026', ''],            // not on the StrayPaw register
+  ['KOR-101', 'Bruno',  'Koramangala',  'M', '03-10-2026', 'Yes', ''],
+  ['IND-102', 'Kalu',   'Indiranagar',  'M', '08-10-2026', 'Yes', ''],            // StrayPaw: 06-10-2026  → date differs
+  ['HSR-103', 'Rani',   'HSR Layout',   'F', '09-10-2026', 'Yes', ''],
+  ['JAY-104', 'Tiger',  'Jayanagar',    'M', '13-10-2026', 'Yes', ''],
+  ['BTM-105', 'Moti',   'BTM Layout',   'M', '16-10-2026', 'Yes', ''],
+  ['MAL-106', 'Lucky',  'Malleshwaram', 'M', '21-10-2026', 'Yes', ''],
+  ['WHI-107', 'Sheru',  'Whitefield',   'M', '24-10-2026', 'Yes', ''],
+  ['YEL-108', 'Chotu',  'Yelahanka',    'M', '28-10-2026', 'Yes', ''],
+  ['HSR-103', 'Rani',   'HSR Layout',   'F', '09-10-2026', 'Yes', 'Re-entered'],  // repeated tag
+  ['BAN-109', 'Bhura',  'Banashankari', 'M', '01-11-2026', 'Yes', ''],
+  ['RAJ-110', 'Julie',  'Rajajinagar',  'F', '02-11-2026', 'Yes', ''],
+  ['KOR-111', 'Snowy',  'Koramangala',  'F', '03-11-2026', 'Yes', ''],
+  ['WHI-117', 'Coco',   'Whitefield',   'F', '07-11-2026', 'Yes', ''],   // StrayPaw: status unknown, no vaccination
+  ['YEL-118', 'Ginger', 'Yelahanka',    'F', '10-11-2026', 'Yes', ''],            // StrayPaw: no procedure recorded
+  ['YEL-128', '',       'Yelahanka',    'M', '11-11-2026', 'Yes', 'Released same ward'], // StrayPaw: not sterilised
+  ['KOR-141', 'Rocky',  'Koramangala',  'M', '12-11-2026', 'Yes', ''],            // not on the StrayPaw register
 ];
 const EXPECTED = {
   rows: ROWS.length, distinct_tags: 15,
   not_on_register: ['KOR-141'], repeated_in_document: ['HSR-103'],
   date_differs: [{ tag: 'IND-102', document: '2026-10-08', straypaw: '2026-10-06' }],
-  status_differs: [{ tag: 'YEL-128', document: 'sterilised', straypaw: 'not_sterilised' }, { tag: 'WHI-117', document: 'sterilised + ARV', straypaw: 'status unknown; sterilisation event 2026-11-07; no vaccination' }, { tag: 'YEL-118', document: 'sterilised 2026-11-10', straypaw: 'no procedure recorded' }],
+  status_not_updated: ['WHI-117'], not_recorded_on_register: ['YEL-118', 'YEL-128'], agrees: 10,
   on_straypaw_not_in_document: ['IND-112', 'HSR-113', 'JAY-114', 'BTM-115', 'MAL-116'],
   claimed_total_in_letter: 18,
 };
-const HEAD = ['Sl. No.', 'Tag No.', 'Name', 'Ward', 'Sex', 'ABC surgery date', 'ARV date', 'Remarks'];
+const HEAD = ['Sl. No.', 'Tag No.', 'Name', 'Ward', 'Sex', 'ABC surgery date', 'ARV given', 'Remarks'];
 
 function xlsx() {
   const aoa = [['Office of the Joint Director (Animal Husbandry), East Zone — ABC/ARV register'], ['Agency: Bengaluru Animal Care Trust', '', '', 'Period: 01-10-2026 to 15-11-2026'], [], HEAD, ...ROWS.map((r, i) => [i + 1, ...r])];

@@ -192,3 +192,54 @@
 .kp-set ul { margin: 8px 0 0; padding-left: 18px; columns: 2 240px; }
 .kp-set code { font-size: 12px; }
 .nx-btn.is-bad { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+/* ── Files and speech in the conversation ─────────────────────────── */
+.nx-composer.is-over { box-shadow: 0 0 0 2px var(--accent); }
+.kj-files { list-style: none; margin: 0; padding: 10px 12px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.kj-file { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 32px; padding: 0 4px 0 10px; border-radius: 8px; background: var(--hover); color: var(--ink); font-size: 12.5px; }
+.kj-file > svg { flex: none; color: var(--accent); }
+.kj-file.is-failed > svg, .kj-file.is-failed .kj-file-s { color: var(--bad, #b42318); }
+.kj-file-n { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 30ch; }
+.kj-file-s { color: var(--ink-3); white-space: nowrap; }
+.kj-file.is-failed { flex-wrap: wrap; height: auto; padding-block: 4px; }
+.kj-file.is-failed .kj-file-s { white-space: normal; }
+.nx-kq-w { display: grid; justify-items: end; gap: 4px; }
+.kj-sent { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.kj-sent li { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line); background: var(--bg); font-size: 12px; font-weight: 600; color: var(--ink); max-width: 100%; }
+.kj-sent li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch; }
+.kj-sent li svg { color: var(--accent); flex: none; }
+.kj-sent li small { color: var(--ink-3); font-weight: 400; }
+.kj-spoken { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-3); }
+.kj-writing { opacity: .86; }
+.kj-writing .nx-ka-t:last-child::after { content: ""; display: inline-block; width: 6px; height: 13px; margin-left: 3px; vertical-align: -2px; border-radius: 1px; background: var(--accent); animation: kj-caret 1s steps(2) infinite; }
+@keyframes kj-caret { 50% { opacity: 0; } }
+.kj-listen { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; }
+.kj-listen.is-on { color: var(--accent); }
+.nx-ask-f .kj-attach:disabled { opacity: .4; }
+.kj-talk { position: relative; }
+.kj-talk.is-listening { color: #fff; background: var(--accent); box-shadow: 0 0 0 calc(2px + var(--kj-level, 0) * 9px) color-mix(in srgb, var(--accent) 22%, transparent); transition: box-shadow .09s linear; }
+.kj-talk.is-listening:hover { background: var(--accent); color: #fff; }
+.kj-talk.is-speaking { color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+@media (prefers-reduced-motion: reduce) { .kj-writing .nx-ka-t:last-child::after { animation: none; } .kj-talk.is-listening { transition: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); } }
+@media (max-width: 640px) {
+  .kj-file { min-height: 44px; font-size: 14px; }
+  .kj-file .nx-ib { width: 44px; height: 44px; }
+  .kj-sent li { height: 32px; font-size: 13px; }
+  .kj-listen { min-height: 44px; }
+}
+/* The in-conversation microphone is offered on every screen size (the older voice toggle stays phone-only). */
+.nx .nx-composer .kj-talk { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; }
+.nx .nx-composer .kj-attach { width: 32px; height: 32px; border-radius: 9px; }
+.nx .nx-composer .nx-ask-f .kj-attach { margin-left: auto; }
+.nx .nx-composer .nx-ask-f .kj-attach ~ .nx-btn, .nx .nx-composer .nx-ask-f .kj-talk ~ .nx-btn { margin-left: 0; }
+.nx .nx-composer .nx-ask-f .nx-kread ~ .kj-attach { margin-left: 0; }
+@media (max-width: 640px) {
+  .nx .nx-composer:has(.kj-attach) { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+  .nx .nx-composer:has(.kj-attach) .kj-files { grid-column: 1 / -1; grid-row: 1; padding: 0 0 4px; }
+  .nx .nx-composer:has(.kj-attach) #kj-status { grid-row: 2; }
+  .nx .nx-composer:has(.kj-attach) .nx-ask-in { grid-row: 3; }
+  .nx .nx-composer:has(.kj-attach) .nx-kread { grid-row: 4; }
+  .nx .nx-composer:has(.kj-attach) .kj-attach { grid-column: 2; grid-row: 3; width: 44px; height: 44px; border-radius: 12px; margin: 0; }
+  .nx .nx-composer:has(.kj-attach) .kj-mic { grid-column: 3; grid-row: 3; width: 44px; height: 44px; border-radius: 12px; }
+  .nx .nx-composer:has(.kj-attach) .kj-send, .nx .kj-compose .nx-composer:has(.kj-attach) .nx-ask-f .kj-send { grid-column: 4; grid-row: 3; }
+}

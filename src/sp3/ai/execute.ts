@@ -40,6 +40,9 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     case "sms":
       r = await act("sms", "sms", { to: p.to, values: p.values }, `SMS request accepted for ${p.to.length} recipients; delivery is unverified`);
       break;
+    case "composed_report":
+      r = await download(p.format, "", p.title, p.doc);
+      break;
     case "report_file": {
       const dl = await download(p.format, p.source, p.title);
       r = dl.ok && p.saveTo ? await act("save_report", p.saveTo, { format: p.format, source: p.source, title: p.title }, `Downloaded and saved to ${p.saveToName}`) : dl;
@@ -87,10 +90,10 @@ async function act(action: string, provider: string, payload: Record<string, unk
   const j = await res.json().catch(() => ({}));
   return res.ok ? { ok: true, at: new Date().toISOString(), what, href: j.url ?? undefined } : { ok: false, error: j.error ?? "Not done. Nothing was sent." };
 }
-async function download(format: string, source: string, title: string): Promise<Saved> {
+async function download(format: string, source: string, title: string, composed?: unknown): Promise<Saved> {
   const t = await token();
   if (!t) return { ok: false, error: "Sign in again to continue." };
-  const res = await fetch("/api/files/export", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ format, source, title }) });
+  const res = await fetch("/api/files/export", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify(composed ? { format, title, document: composed } : { format, source, title }) });
   if (!res.ok) { const j = await res.json().catch(() => ({})); return { ok: false, error: j.error ?? "The report could not be made." }; }
   const blob = await res.blob();
   const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? `report.${format}`;

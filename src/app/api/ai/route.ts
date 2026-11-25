@@ -12,7 +12,7 @@ import { caller as connCaller, capabilitiesFor } from "@/lib/connections/server"
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /* Kaju. The caller's own access token (if any) is forwarded to
    Supabase, so every tool read is decided by row-level security exactly as
@@ -42,7 +42,8 @@ export async function GET(req:Request) {
 export async function POST(req: Request) {
   let body: AiRequest;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
-  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string") || (body.context.title != null && (typeof body.context.title !== "string" || body.context.title.length > 300)) || (body.context.caseId != null && (typeof body.context.caseId !== "string" || body.context.caseId.length > 64)) || (body.context.dogId != null && (typeof body.context.dogId !== "string" || body.context.dogId.length > 64))))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
+  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string") || (body.context.title != null && (typeof body.context.title !== "string" || body.context.title.length > 300)) || (body.context.caseId != null && (typeof body.context.caseId !== "string" || body.context.caseId.length > 64)) || (body.context.dogId != null && (typeof body.context.dogId !== "string" || body.context.dogId.length > 64)) || (body.context.lang != null && (typeof body.context.lang !== "string" || !/^[a-z]{2}-IN$/.test(body.context.lang)))))
+    || (body.attachments != null && (!Array.isArray(body.attachments) || body.attachments.length > 3 || body.attachments.some((a) => !a || typeof a !== "object" || typeof a.name !== "string" || a.name.length > 200 || typeof a.kind !== "string" || a.kind.length > 20 || typeof a.text !== "string" || a.text.length > 40_000 || (a.pages != null && typeof a.pages !== "number") || (a.read != null && !["text", "sarvam_vision", "model_vision"].includes(a.read)))))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
 
   const auth = req.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
@@ -90,6 +91,9 @@ export async function POST(req: Request) {
   const retry = body.retry === true;
   const started = Date.now();
   const question = turns[turns.length - 1]?.text ?? "";
+  /* Attached files are for signed-in people only, and never on a health page: patient paperwork is not read here. */
+  const attachments = userId && !baseCtx.pagePath?.startsWith("/health") ? body.attachments ?? [] : [];
+  const askContext = { ...body.context, attachments, signal: req.signal };
   const finish = async (reply: AiReply | null): Promise<AiReply | null> => {
     const turnId = userId ? await logTurn(admin, userId, { orgId, workspace: baseCtx.workspace, surface, path: baseCtx.pagePath ?? null, question, reply, latencyMs: Date.now() - started, retry, error: !reply }) : null;
     if (!reply) return null;
@@ -106,7 +110,7 @@ export async function POST(req: Request) {
         const send = (o: unknown) => { try { ctrl.enqueue(enc.encode(JSON.stringify(o) + "\n")); } catch { /* client gone */ } };
         send({ type: "start", scope });
         try {
-          const reply = await finish(await answer(turns, { ...baseCtx, progress: (e) => send({ type: "progress", ...e }) }, { ...body.context, signal: req.signal }));
+          const reply = await finish(await answer(turns, { ...baseCtx, progress: (e) => send({ type: "progress", ...e }), delta: (text) => send({ type: "text", text }) }, askContext));
           send({ type: "reply", reply: { ...reply, scope } });
         } catch {
           if (!req.signal.aborted) { console.error("Kaju request failed"); await finish(null); send({ type: "error", error: "Kaju could not answer. Nothing was changed." }); }
@@ -116,7 +120,7 @@ export async function POST(req: Request) {
     return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" } });
   }
   try {
-    const reply = await finish(await answer(turns, baseCtx, {...body.context,signal:req.signal}));
+    const reply = await finish(await answer(turns, baseCtx, askContext));
     if(req.signal.aborted)return new Response(null,{status:499});
     return NextResponse.json({...reply,scope},{headers:{"Cache-Control":"no-store"}});
   } catch {

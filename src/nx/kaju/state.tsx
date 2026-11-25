@@ -3,7 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { canonicalHref } from "@/lib/routes/canonical";
 import { getSupabase } from "@/lib/supabase";
-import type { AiReply, Proposal } from "@/sp3/ai/types";
+import type { AiReply, Attachment, Proposal } from "@/sp3/ai/types";
+import { hearTurn, recordTurn, sayAnswer, stopPlayback, unlockPlayback, type Recording } from "./speech";
 import type { Intent, Plan } from "@/lib/kaju/registry";
 import { confirmVerified, type Saved } from "@/sp3/ai/execute";
 import { isAiReply } from "@/sp3/ai/validation";
@@ -14,7 +15,14 @@ import { isAiReply } from "@/sp3/ai/validation";
 /* What went wrong with a turn decides what the person can do next: try again, or sign in again. */
 export type TurnError = "incomplete" | "timeout" | "stopped" | "expired" | "failed";
 export type Turn = { id: string; role: "user" | "kaju"; text: string; reply?: AiReply; pending?: boolean; progress?: string[]; error?: string; kind?: TurnError; saved?: Record<string, Saved>;
-  /** The person's rating of this answer (pilot feedback). */ rated?: 1 | -1; restored?: boolean };
+  /** The person's rating of this answer (pilot feedback). */ rated?: 1 | -1; restored?: boolean;
+  /** Files that went with this question (names only; the text travels with the conversation, not the saved history). */ files?: FileNote[];
+  /** A spoken turn: the language it was heard in. On an answer, the language it is read aloud in. */ spoken?: string | null };
+/** A file attached to this conversation. `text` is what was read from it; it stays in this tab. */
+export type AttachedFile = Attachment & { id: string; state: "reading" | "ready" | "failed"; error?: string; size?: number };
+export type FileNote = { name: string; kind: string; pages?: number; read?: Attachment["read"] };
+/** Talking in the conversation: idle, recording a turn, turning it into text, or reading an answer aloud. */
+export type SpeechPhase = "idle" | "listening" | "hearing" | "speaking";
 /** A saved conversation, newest first. */
 export type ThreadSummary = { id: string; title: string; updated_at: string };
 /** Whether this conversation is kept: "on" saved to the person's history; "health" and "guest" stay in this tab only. */
@@ -32,7 +40,11 @@ type Ctx = {
   setPage: (p: { path: string; title?: string }) => void;
   /** A record page says which record is open, so "this case" means it. Cleared when the page changes. */
   setSubject: (s: KajuSubject | null) => void;
-  ask: (text: string, opts?: { retry?: boolean }) => Promise<void>; clear: () => void; stop: () => void; retry: (turnId: string) => void; expired: boolean;
+  ask: (text: string, opts?: { retry?: boolean; spoken?: string | null }) => Promise<void>;
+  /** Files attached to this conversation (at most three), and attaching or removing one. */
+  files: AttachedFile[]; attach: (file: File) => Promise<void>; detach: (id: string) => void;
+  /** Speaking: whether this deployment offers it, what is happening now, the microphone level, the last problem, and the controls. */
+  speech: { offered: boolean; phase: SpeechPhase; level: number; error: string | null; talk: () => void; cancel: () => void; listen: (turnId: string) => void; speakingTurn: string | null }; clear: () => void; stop: () => void; retry: (turnId: string) => void; expired: boolean;
   /** Saved conversations: the current one's id, whether it is kept, the list, and moving between them. */
   threadId: string | null; keeping: Keeping; history: ThreadSummary[] | null; loadHistory: () => Promise<void>; resume: (id: string) => Promise<boolean>; forget: (id: string) => Promise<boolean>;
   rate: (turnId: string, f: Feedback) => Promise<boolean>;
@@ -60,7 +72,8 @@ function keepingFor(scope: string | null, path: string): { keeping: Keeping; org
   return { keeping: "on", orgId: orgId ?? null, workspace };
 }
 /* A reply that has not arrived after this long is given up; anything that arrives later is dropped. */
-export const TIMEOUT_MS = 55_000;
+export const TIMEOUT_MS = 115_000;
+export const MAX_FILES = 3;
 export const MSG: Record<TurnError, string> = {
   incomplete: "Kaju returned an incomplete response. No action was confirmed. Try again.",
   timeout: "Kaju timed out before answering. Nothing was changed. Try again.",
@@ -88,6 +101,18 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   const thread = useRef<string | null>(null);
   const [history, setHistory] = useState<ThreadSummary[] | null>(null);
   const [scopeKey, setScopeKey] = useState<string | null>(null);
+  const [files, setFiles] = useState<AttachedFile[]>([]);
+  const filesRef = useRef<AttachedFile[]>([]); filesRef.current = files;
+  const [speechOffered, setSpeechOffered] = useState(false);
+  const [phase, setPhase] = useState<SpeechPhase>("idle");
+  const [level, setLevel] = useState(0);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [speakingTurn, setSpeakingTurn] = useState<string | null>(null);
+  const rec = useRef<Recording | null>(null);
+  const voiceAbort = useRef<AbortController | null>(null);
+  /* The language of the last spoken turn: a typed follow-up is not read aloud, a spoken one is, in the language it was asked in. */
+  const say = useRef<{ kid: string; lang: string } | null>(null);
+  useEffect(() => { let live = true; fetch("/api/kaju/speech").then((r) => r.json()).then((j: { speech?: boolean }) => { if (live) setSpeechOffered(j.speech === true && typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia); }).catch(() => undefined); return () => { live = false; }; }, []);
   /* The conversation belongs to one person in one workspace. The server names that scope; when it changes (another
      account, another organisation, a membership removed) the earlier conversation is hidden, never shown to the next. */
   const scope = useRef<string | null>(null);
@@ -96,14 +121,14 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   const patch = (id: string, f: (t: Turn) => Turn) => setTurns((ts) => ts.map((t) => (t.id === id ? f(t) : t)));
   const adopt = useCallback((s: string | null | undefined) => {
     if (!s) return;
-    if (scope.current && scope.current !== s) { ctrl.current?.ac.abort(); ctrl.current = null; setTurns([]); setBusy(false); thread.current = null; setThreadId(null); setHistory(null); }
+    if (scope.current && scope.current !== s) { ctrl.current?.ac.abort(); ctrl.current = null; setTurns([]); setBusy(false); thread.current = null; setThreadId(null); setHistory(null); setFiles([]); voiceAbort.current?.abort(); rec.current?.cancel(); }
     scope.current = s; setScopeKey(s);
   }, []);
   const keep = useMemo(() => keepingFor(scopeKey, page.path), [scopeKey, page.path]);
 
   /* Save one question and its answer to the person's own history (kaju_threads, row-level security: theirs only, and only
      while they belong to the organisation). Best effort: a failed save never touches the conversation on screen. */
-  const persist = useCallback(async (q: string, reply: AiReply) => {
+  const persist = useCallback(async (q: string, reply: AiReply, notes?: FileNote[], spoken?: string | null) => {
     const k = keepingFor(scope.current, page.path);
     if (k.keeping !== "on") return;
     const db = getSupabase(); if (!db) return;
@@ -115,7 +140,9 @@ export function KajuProvider({ children }: { children: ReactNode }) {
         if (error || !data) return;
         id = (data as { id: string }).id; thread.current = id; setThreadId(id);
       }
-      await db.from("kaju_thread_turns").insert([{ thread_id: id, role: "user", text: q.slice(0, 12000) }, { thread_id: id, role: "kaju", text: reply.text.slice(0, 12000), reply: keepable(reply) }]);
+      /* The transcript of a spoken turn and the names of attached files are kept with the question; audio and file contents are not. */
+      const kept = `${q.slice(0, 11500)}${spoken !== undefined ? `\n(Spoken${spoken ? `, ${spoken}` : ""})` : ""}${notes?.length ? `\n(Attached: ${notes.map((n) => n.name).join(", ").slice(0, 300)})` : ""}`;
+      await db.from("kaju_thread_turns").insert([{ thread_id: id, role: "user", text: kept }, { thread_id: id, role: "kaju", text: reply.text.slice(0, 12000), reply: keepable(reply) }]);
       setHistory((h) => h ? [{ id: id!, title: h.find((x) => x.id === id)?.title ?? q.slice(0, 80), updated_at: new Date().toISOString() }, ...h.filter((x) => x.id !== id)] : h);
     } catch { /* the conversation stays on screen; it is just not saved */ }
   }, [page.path]);
@@ -135,11 +162,18 @@ export function KajuProvider({ children }: { children: ReactNode }) {
     return () => { live = false; window.removeEventListener("focus", check); };
   }, [adopt]);
 
-  const ask = useCallback(async (text: string, opts?: { retry?: boolean }) => {
+  const ask = useCallback(async (text: string, opts?: { retry?: boolean; spoken?: string | null }) => {
     const q = text.trim(); if (!q || busy || expired) return;
     const uid = `u${Date.now()}`, kid = `k${Date.now()}`;
+    const ready = filesRef.current.filter((f) => f.state === "ready");
+    /* Files are named on the first question after they were attached; they keep travelling with later questions. */
+    const fresh = ready.filter((f) => !turns.some((t) => t.files?.some((n) => n.name === f.name)));
+    const notes: FileNote[] | undefined = fresh.length ? fresh.map((f) => ({ name: f.name, kind: f.kind, pages: f.pages, read: f.read })) : undefined;
+    const spoken = opts?.spoken;
+    stopPlayback(); voiceAbort.current?.abort(); setSpeakingTurn(null);
+    say.current = spoken !== undefined ? { kid, lang: spoken ?? "en-IN" } : null;
     const history = [...turns, { id: uid, role: "user" as const, text: q }].filter((t) => !t.error).slice(-12).map((t) => ({ role: t.role === "user" ? "user" : "assistant", text: t.role === "user" ? t.text : t.reply?.text ?? t.text }));
-    setTurns((ts) => [...ts, { id: uid, role: "user", text: q }, { id: kid, role: "kaju", text: "", pending: true, progress: [] }]);
+    setTurns((ts) => [...ts, { id: uid, role: "user", text: q, ...(notes ? { files: notes } : {}), ...(spoken !== undefined ? { spoken } : {}) }, { id: kid, role: "kaju", text: "", pending: true, progress: [] }]);
     setBusy(true);
     ctrl.current?.ac.abort();
     const mine = { ac: new AbortController(), why: null as TurnError | null, seq: ++seq.current };
@@ -152,12 +186,22 @@ export function KajuProvider({ children }: { children: ReactNode }) {
       const s = (reply as AiReply & { scope?: string }).scope;
       if (s && scope.current && s !== scope.current) { adopt(s); return; }
       patch(kid, (x) => ({ ...x, pending: false, text: reply.text, reply }));
-      void persist(q, reply);
+      void persist(q, reply, notes, spoken);
+      /* A spoken question gets a spoken answer, in the language it was asked in. */
+      const aloud = say.current;
+      if (aloud?.kid === kid && reply.text.trim()) void (async () => {
+        const tk = await token(); if (!tk) return;
+        const ac = new AbortController(); voiceAbort.current = ac;
+        patch(kid, (x) => ({ ...x, spoken: aloud.lang }));
+        setPhase("speaking"); setSpeakingTurn(kid);
+        await sayAnswer(reply.text, aloud.lang, tk, ac.signal);
+        if (voiceAbort.current === ac) { setPhase("idle"); setSpeakingTurn(null); }
+      })();
     };
     const timer = setTimeout(() => { mine.why = "timeout"; mine.ac.abort(); }, TIMEOUT_MS);
     try {
       const t = await token();
-      const res = await fetch("/api/ai", { method: "POST", signal: mine.ac.signal, headers: { "Content-Type": "application/json", Accept: "application/x-ndjson", ...(t ? { Authorization: `Bearer ${t}` } : {}) }, body: JSON.stringify({ messages: history, retry: opts?.retry === true, context: { path: page.path, title: page.title, scope: scope.current ?? undefined, surface: open ? "dock" : "page", ...(page.caseId ? { caseId: page.caseId } : {}), ...(page.dogId ? { dogId: page.dogId } : {}) } }) });
+      const res = await fetch("/api/ai", { method: "POST", signal: mine.ac.signal, headers: { "Content-Type": "application/json", Accept: "application/x-ndjson", ...(t ? { Authorization: `Bearer ${t}` } : {}) }, body: JSON.stringify({ messages: history, retry: opts?.retry === true, ...(ready.length ? { attachments: ready.slice(0, MAX_FILES).map((f) => ({ name: f.name, kind: f.kind, text: f.text, ...(f.pages ? { pages: f.pages } : {}), ...(f.read ? { read: f.read } : {}) })) } : {}), context: { path: page.path, title: page.title, scope: scope.current ?? undefined, surface: spoken !== undefined ? "voice" : open ? "dock" : "page", ...(spoken ? { lang: spoken } : {}), ...(page.caseId ? { caseId: page.caseId } : {}), ...(page.dogId ? { dogId: page.dogId } : {}) } }) });
       if (res.status === 401) { setExpired(true); fail("expired"); setTurns((ts) => ts.filter((x) => x.id === kid)); return; }
       if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); fail("failed", (j as { error?: string }).error ?? undefined); return; }
       /* A plain JSON answer, or a stream of progress lines ending in the reply. */
@@ -165,9 +209,10 @@ export function KajuProvider({ children }: { children: ReactNode }) {
       const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = ""; let replied = false;
       const line = (l: string) => {
         if (!l.trim()) return;
-        let ev: { type: string; summary?: string; reply?: AiReply; error?: string };
+        let ev: { type: string; summary?: string; reply?: AiReply; error?: string; text?: string };
         try { ev = JSON.parse(l); } catch { fail("incomplete"); replied = true; return; }
         if (ev.type === "progress" && ev.summary) { if (current()) patch(kid, (x) => ({ ...x, progress: [...(x.progress ?? []), ev.summary!] })); }
+        else if (ev.type === "text" && typeof ev.text === "string") { if (current()) patch(kid, (x) => (x.pending ? { ...x, text: ev.text! } : x)); }
         else if (ev.type === "reply") { replied = true; settle(ev.reply); }
         else if (ev.type === "error") { replied = true; fail("failed", ev.error); }
       };
@@ -188,6 +233,65 @@ export function KajuProvider({ children }: { children: ReactNode }) {
       patch(kid, (x) => (x.pending ? { ...x, pending: false, kind: "incomplete", error: x.error ?? MSG.incomplete } : x));
     }
   }, [busy, expired, turns, page, adopt, open, persist]);
+
+  /* ── files ── */
+  const attach = useCallback(async (file: File) => {
+    if (filesRef.current.length >= MAX_FILES) return;
+    const id = `f${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
+    const base: AttachedFile = { id, name: file.name.slice(0, 160), kind: file.name.toLowerCase().split(".").pop() ?? "file", text: "", state: "reading", size: file.size };
+    setFiles((fs) => [...fs, base].slice(0, MAX_FILES));
+    const failed = (error: string) => setFiles((fs) => fs.map((f) => (f.id === id ? { ...f, state: "failed", error } : f)));
+    if (file.size > 4 * 1024 * 1024) { failed("Attach a file smaller than 4 MB."); return; }
+    const t = await token(); if (!t) { failed("Sign in again to attach files."); return; }
+    try {
+      const body = new FormData(); body.append("file", file);
+      const res = await fetch("/api/kaju/documents", { method: "POST", headers: { Authorization: `Bearer ${t}` }, body });
+      const j = (await res.json().catch(() => ({}))) as Partial<Attachment> & { error?: string };
+      if (!res.ok || typeof j.text !== "string" || !j.text.trim()) { failed(j.error ?? "That file could not be read."); return; }
+      setFiles((fs) => fs.map((f) => (f.id === id ? { ...f, state: "ready", kind: j.kind ?? f.kind, text: j.text!, pages: j.pages, read: j.read } : f)));
+    } catch { failed("That file could not be read. Check your connection and try again."); }
+  }, []);
+  const detach = useCallback((id: string) => setFiles((fs) => fs.filter((f) => f.id !== id)), []);
+
+  /* ── speaking ── */
+  const askRef = useRef(ask); askRef.current = ask;
+  const cancelSpeech = useCallback(() => { rec.current?.cancel(); rec.current = null; voiceAbort.current?.abort(); voiceAbort.current = null; stopPlayback(); setPhase("idle"); setSpeakingTurn(null); setLevel(0); }, []);
+  /* One tap starts a spoken turn; a second tap ends it early. The turn also ends by itself after a pause. */
+  const talk = useCallback(() => {
+    if (phase === "listening") { rec.current?.stop(); return; }
+    if (phase === "speaking") { cancelSpeech(); return; }
+    if (phase !== "idle" || busy) return;
+    setSpeechError(null); unlockPlayback(); stopPlayback();
+    void (async () => {
+      let r: Recording;
+      try { r = await recordTurn(setLevel); } catch { setSpeechError("The microphone is not available. Allow it for this site and try again."); return; }
+      rec.current = r; setPhase("listening");
+      const audio = await r.done; rec.current = null; setLevel(0);
+      if (!audio) { setPhase("idle"); return; }
+      setPhase("hearing");
+      const tk = await token(); if (!tk) { setPhase("idle"); setSpeechError("Sign in again to talk to Kaju."); return; }
+      const ac = new AbortController(); voiceAbort.current = ac;
+      const heard = await hearTurn(audio, tk, ac.signal);
+      if (voiceAbort.current !== ac) return;
+      setPhase("idle");
+      if ("error" in heard) { setSpeechError(heard.error); return; }
+      void askRef.current(heard.text, { spoken: heard.lang });
+    })();
+  }, [phase, busy, cancelSpeech]);
+  /* Read an earlier answer aloud (or stop it), in the language it was answered in. */
+  const listen = useCallback((turnId: string) => {
+    if (speakingTurn === turnId) { cancelSpeech(); return; }
+    const t = turns.find((x) => x.id === turnId); if (!t?.reply?.text) return;
+    unlockPlayback(); voiceAbort.current?.abort();
+    void (async () => {
+      const tk = await token(); if (!tk) return;
+      const ac = new AbortController(); voiceAbort.current = ac;
+      setPhase("speaking"); setSpeakingTurn(turnId);
+      await sayAnswer(t.reply!.text, t.spoken ?? (/[ऀ-ॿ]/.test(t.reply!.text) ? "hi-IN" : /[ಀ-೿]/.test(t.reply!.text) ? "kn-IN" : "en-IN"), tk, ac.signal);
+      if (voiceAbort.current === ac) { setPhase("idle"); setSpeakingTurn(null); }
+    })();
+  }, [turns, speakingTurn, cancelSpeech]);
+  useEffect(() => () => { rec.current?.cancel(); voiceAbort.current?.abort(); stopPlayback(); }, []);
 
   /* Stop waiting: the request is abandoned and a late answer is dropped. Nothing Kaju prepared is confirmed. */
   const stop = useCallback(() => { const c = ctrl.current; if (!c) return; c.why = "stopped"; c.ac.abort(); ctrl.current = null; setBusy(false); }, []);
@@ -257,9 +361,10 @@ export function KajuProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => ({ turns, busy, open, setOpen, page, setPage, setSubject, ask,
     /* A new conversation: the screen is cleared and the next question starts a new saved conversation. */
-    clear: () => { const c = ctrl.current; if (c) { c.why = null; c.ac.abort(); ctrl.current = null; } setBusy(false); setTurns([]); thread.current = null; setThreadId(null); },
+    clear: () => { const c = ctrl.current; if (c) { c.why = null; c.ac.abort(); ctrl.current = null; } setBusy(false); setTurns([]); thread.current = null; setThreadId(null); setFiles([]); cancelSpeech(); },
+    files, attach, detach, speech: { offered: speechOffered, phase, level, error: speechError, talk, cancel: cancelSpeech, listen, speakingTurn },
     stop, retry, expired, plan, start, confirm, threadId, keeping: keep.keeping, history, loadHistory, resume, forget, rate }),
-  [turns, busy, open, page, setPage, setSubject, ask, stop, retry, expired, plan, start, confirm, threadId, keep.keeping, history, loadHistory, resume, forget, rate]);
+  [turns, busy, open, page, setPage, setSubject, ask, stop, retry, expired, plan, start, confirm, threadId, keep.keeping, history, loadHistory, resume, forget, rate, files, attach, detach, speechOffered, phase, level, speechError, talk, cancelSpeech, listen, speakingTurn]);
   return <KajuCtx.Provider value={value}>{children}</KajuCtx.Provider>;
 }
 
