@@ -2,7 +2,9 @@
 
 This directory holds the database's SQL: the schema, the migration sets, the
 RPCs/views/RLS, and a set of historical one-off scripts. For the data model,
-RLS and index strategy see [`../docs/DATABASE.md`](../docs/DATABASE.md).
+RLS and index strategy see [`../docs/DATABASE.md`](../docs/DATABASE.md). For plan, cost,
+backups, restores and local development see
+[`../docs/SUPABASE-COST-AND-BACKUPS.md`](../docs/SUPABASE-COST-AND-BACKUPS.md).
 
 ## How migrations are applied
 

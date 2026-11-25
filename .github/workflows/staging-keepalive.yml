@@ -1,0 +1,75 @@
+# Daily, two independent checks:
+#
+# 1. Staging keep-alive. On the Supabase Free plan a project with too little
+#    database activity over 7 days is paused. Staging serves demo.straypaw.org
+#    (linked from production) and the signed-in e2e suite, so it must stay
+#    awake in a quiet week. This reads one public row through the demo
+#    deployment's deep health check: the request a visitor makes, no secrets.
+#    Production does not need this: it has real traffic and the hourly probe.
+#
+# 2. Backup freshness. Fails, and opens the backup-alert issue, when no
+#    "Database backup" run has succeeded in the last 30 hours. GitHub delays
+#    and sometimes skips scheduled runs (the AnimalID worker, scheduled every
+#    10 minutes, ran about twice a day in Nov 2026), so a missing backup must
+#    be noticed by something other than the backup itself. The external
+#    heartbeat (BACKUP_HEARTBEAT_URL) covers the case where GitHub stops
+#    running schedules altogether.
+name: Staging keep-alive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 7 * * *" # daily
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Deep health check on the demo (staging database)
+        env:
+          STRAYPAW_HEALTHCHECK_URL: https://demo.straypaw.org/api/health?deep=1
+        run: node scripts/ops/probe-health.mjs
+
+  backup-freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let wf;
+            try { wf = (await github.rest.actions.getWorkflow({ owner, repo, workflow_id: 'db-backup.yml' })).data; }
+            catch (e) { core.notice('Database backup workflow is not on the default branch yet.'); return; }
+            const ageH = (Date.now() - new Date(wf.created_at)) / 36e5;
+            const runs = (await github.rest.actions.listWorkflowRuns({ owner, repo, workflow_id: 'db-backup.yml',
+              branch: context.payload.repository?.default_branch ?? 'main', status: 'success', per_page: 1 })).data.workflow_runs;
+            const last = runs[0] ? new Date(runs[0].updated_at) : null;
+            const hours = last ? (Date.now() - last) / 36e5 : Infinity;
+            if (wf.state !== 'active') {
+              await alert(`The Database backup workflow is **${wf.state}**. Re-enable it in the Actions tab.`);
+              return core.setFailed(`Database backup workflow is ${wf.state}.`);
+            }
+            if (hours <= 30) return core.info(`Last successful backup ${hours.toFixed(1)} h ago.`);
+            if (!last && ageH < 36) return core.notice('Database backup has not run yet (workflow added under 36 h ago).');
+            await alert(last ? `No successful backup for **${hours.toFixed(0)} hours** (last: ${last.toISOString()}).` : 'No successful backup has **ever** run.');
+            core.setFailed('Backups are stale.');
+
+            async function alert(text) {
+              const title = 'Database backup failing', label = 'backup-alert';
+              try { await github.rest.issues.createLabel({ owner, repo, name: label, color: 'b60205', description: 'Backups are failing' }); } catch (e) {}
+              const open = (await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: label, per_page: 20 })).data.find(i => i.title === title);
+              const body = `${text}\n\nFound by the daily freshness check. Runbook: docs/SUPABASE-COST-AND-BACKUPS.md.`;
+              if (open) await github.rest.issues.createComment({ owner, repo, issue_number: open.number, body });
+              else await github.rest.issues.create({ owner, repo, title, body, labels: [label] });
+            }

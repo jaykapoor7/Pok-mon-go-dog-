@@ -1,0 +1,117 @@
+# Nightly encrypted backup of BOTH Supabase projects with a restore drill
+# every night (Storage objects weekly, on Sundays), and failure alerts.
+# Supabase's own daily backups exist only on paid plans; this replaces them.
+#
+# Setup (owner, once) — docs/SUPABASE-COST-AND-BACKUPS.md → Setup:
+#   1. `age-keygen -o straypaw-backup.key` on your own machine; keep the file
+#      offline in two places. Put the public key (age1…) in the repository
+#      VARIABLE BACKUP_AGE_RECIPIENTS (several keys: space separated).
+#   2. Secrets: production SUPABASE_POOLER_URL (exists), BACKUP_SUPABASE_URL,
+#      BACKUP_SUPABASE_SERVICE_KEY; staging STAGING_POOLER_URL,
+#      STAGING_SUPABASE_URL, STAGING_SUPABASE_SERVICE_KEY.
+#   3. Alerts: a free healthchecks.io check (period 1 day, grace 6 h) whose
+#      ping URL goes in secret BACKUP_HEARTBEAT_URL — it alerts you when NO
+#      backup succeeded, which also covers GitHub skipping or disabling this
+#      schedule. Optional: TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID.
+#      Every failure also opens (or updates) an issue labelled backup-alert;
+#      the next success closes it.
+#
+# The repository is public: artifacts are encrypted before upload; the private
+# key never goes to GitHub. GitHub disables schedules in public repositories
+# after 60 days without commits; the heartbeat catches that.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "41 20 * * *" # 02:11 IST, daily
+  workflow_dispatch:
+    inputs:
+      restore_drill:
+        description: "Restore into a throwaway local Supabase stack and verify everything"
+        type: boolean
+        default: true
+      storage:
+        description: "Also back up Storage objects"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: straypaw-db-backup
+  cancel-in-progress: false
+
+jobs:
+  production:
+    uses: ./.github/workflows/_backup-target.yml
+    secrets: inherit
+    with:
+      target: production
+      mode: nightly
+      drill: ${{ github.event_name == 'workflow_dispatch' && (inputs.restore_drill && 'true' || 'false') || 'true' }}
+      storage: ${{ github.event_name == 'workflow_dispatch' && (inputs.storage && 'true' || 'false') || 'auto' }}
+
+  staging:
+    uses: ./.github/workflows/_backup-target.yml
+    secrets: inherit
+    with:
+      target: staging
+      mode: nightly
+      drill: ${{ github.event_name == 'workflow_dispatch' && (inputs.restore_drill && 'true' || 'false') || 'true' }}
+      storage: ${{ github.event_name == 'workflow_dispatch' && (inputs.storage && 'true' || 'false') || 'auto' }}
+
+  alert:
+    needs: [production, staging]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      PRODUCTION: ${{ needs.production.result }}
+      STAGING: ${{ needs.staging.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - name: Heartbeat (dead-man's switch)
+        if: env.HEARTBEAT_URL != ''
+        run: |
+          if [ "$PRODUCTION" = success ] && [ "$STAGING" = success ]; then
+            curl -fsS -m 10 --retry 3 "$HEARTBEAT_URL" > /dev/null
+          else
+            curl -fsS -m 10 --retry 3 "$HEARTBEAT_URL/fail" > /dev/null
+          fi
+
+      - name: Telegram
+        if: (env.PRODUCTION != 'success' || env.STAGING != 'success') && env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: |
+          curl -fsS -m 10 --retry 3 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=StrayPaw backup FAILED (production: ${PRODUCTION}, staging: ${STAGING}). ${RUN_URL}" > /dev/null
+
+      - name: Open, update or close the alert issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Database backup failing';
+            const label = 'backup-alert';
+            const { PRODUCTION, STAGING, RUN_URL } = process.env;
+            const failed = PRODUCTION !== 'success' || STAGING !== 'success';
+            const { owner, repo } = context.repo;
+            try { await github.rest.issues.createLabel({ owner, repo, name: label, color: 'b60205', description: 'Backups are failing' }); } catch (e) {}
+            const open = (await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: label, per_page: 20 })).data
+              .find(i => i.title === title);
+            const line = `production: **${PRODUCTION}** · staging: **${STAGING}** · [run](${RUN_URL})`;
+            if (failed) {
+              const body = `${line}\n\nOpen the run's summary for the reason (BLOCKED = a secret or variable is missing). ` +
+                `Runbook: docs/SUPABASE-COST-AND-BACKUPS.md. This issue closes itself after the next successful backup.`;
+              if (open) await github.rest.issues.createComment({ owner, repo, issue_number: open.number, body: `Still failing. ${line}` });
+              else await github.rest.issues.create({ owner, repo, title, body, labels: [label] });
+              core.setFailed(`Backup failed: production ${PRODUCTION}, staging ${STAGING}`);
+            } else if (open) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: open.number, body: `Recovered: ${line}` });
+              await github.rest.issues.update({ owner, repo, issue_number: open.number, state: 'closed', state_reason: 'completed' });
+            }

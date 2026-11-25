@@ -1,0 +1,194 @@
+# Reusable: back up one Supabase project (database + Storage), and optionally
+# prove the backup restores. Called by "Database backup" (nightly) and
+# "Backup verification" (pull requests that change backup code).
+#
+# mode: nightly  encrypt to the owner's key (vars.BACKUP_AGE_RECIPIENTS), upload
+#                the artifact, drill from the plaintext on this runner.
+# mode: verify   encrypt to a throwaway key generated on this runner, upload,
+#                DOWNLOAD the artifact again, decrypt it and restore from that:
+#                the exact recovery path, end to end. The throwaway key never
+#                leaves the runner, so the uploaded copy (kept 1 day) can never
+#                be decrypted by anyone.
+#
+# Secrets per target (repository secrets):
+#   production: SUPABASE_POOLER_URL, BACKUP_SUPABASE_URL, BACKUP_SUPABASE_SERVICE_KEY
+#   staging:    STAGING_POOLER_URL,  STAGING_SUPABASE_URL, STAGING_SUPABASE_SERVICE_KEY
+name: Backup one target
+
+on:
+  workflow_call:
+    inputs:
+      target: { type: string, required: true }        # production | staging
+      mode: { type: string, required: true }          # nightly | verify
+      drill: { type: string, default: auto }          # auto (Sundays) | true | false
+      storage: { type: string, default: auto }        # auto (Sundays) | true | false
+
+permissions:
+  contents: read
+
+# An explicit "bash" makes every step run with -eo pipefail. Without it a step
+# that pipes into tee (the backup) reports success even when the dump failed.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  backup:
+    name: ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TARGET: ${{ inputs.target }}
+      MODE: ${{ inputs.mode }}
+      DB_URL: ${{ inputs.target == 'production' && secrets.SUPABASE_POOLER_URL || secrets.STAGING_POOLER_URL }}
+      ST_URL: ${{ inputs.target == 'production' && secrets.BACKUP_SUPABASE_URL || secrets.STAGING_SUPABASE_URL }}
+      ST_KEY: ${{ inputs.target == 'production' && secrets.BACKUP_SUPABASE_SERVICE_KEY || secrets.STAGING_SUPABASE_SERVICE_KEY }}
+      OWNER_RECIPIENTS: ${{ vars.BACKUP_AGE_RECIPIENTS }}
+      SUPABASE_CMD: supabase
+    steps:
+      - name: Plan and check configuration
+        id: plan
+        run: |
+          sunday=false; [ "$(date -u +%u)" = 7 ] && sunday=true
+          drill='${{ inputs.drill }}'; [ "$drill" = auto ] && drill=$sunday
+          storage='${{ inputs.storage }}'; [ "$storage" = auto ] && storage=$sunday
+          [ "$MODE" = verify ] && { drill=true; storage=true; }
+          fatal=""; blocked=""
+          if [ "$TARGET" = production ]; then n_db=SUPABASE_POOLER_URL; n_url=BACKUP_SUPABASE_URL; n_key=BACKUP_SUPABASE_SERVICE_KEY
+          else n_db=STAGING_POOLER_URL; n_url=STAGING_SUPABASE_URL; n_key=STAGING_SUPABASE_SERVICE_KEY; fi
+          [ -n "$DB_URL" ] || fatal="$fatal secret $n_db;"
+          [ "$MODE" = nightly ] && [ -z "$OWNER_RECIPIENTS" ] && fatal="$fatal variable BACKUP_AGE_RECIPIENTS;"
+          if [ "$storage" = true ] && { [ -z "$ST_URL" ] || [ -z "$ST_KEY" ]; }; then
+            # Never skip the database backup because Storage is not set up: back
+            # up and verify the database, then fail the run as BLOCKED.
+            [ -n "$ST_URL" ] || blocked="$blocked secret $n_url;"
+            [ -n "$ST_KEY" ] || blocked="$blocked secret $n_key;"
+            storage=false
+          fi
+          echo "drill=$drill" >> "$GITHUB_OUTPUT"; echo "storage=$storage" >> "$GITHUB_OUTPUT"
+          echo "blocked=$blocked" >> "$GITHUB_OUTPUT"
+          {
+            echo "## $TARGET ($MODE)"
+            echo "Database backup: yes · Storage backup: $storage · Restore drill: $drill"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$fatal" ]; then
+            echo "**BLOCKED** — not configured:$fatal (docs/SUPABASE-COST-AND-BACKUPS.md → Setup)" >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::$TARGET backup blocked, not configured:$fatal"
+            exit 1
+          fi
+          if [ -n "$blocked" ]; then
+            echo "**Storage BLOCKED** — not configured:$blocked The database is still backed up; this run will be marked failed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.1
+
+      - name: Install age and the Postgres 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age jq unzip postgresql-common > /dev/null
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y > /dev/null
+          sudo apt-get install -y -qq postgresql-client-17 > /dev/null
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Choose encryption key
+        run: |
+          if [ "$MODE" = verify ]; then
+            umask 077
+            age-keygen -o "$RUNNER_TEMP/throwaway.key" 2> /dev/null
+            echo "AGE_RECIPIENTS=$(age-keygen -y "$RUNNER_TEMP/throwaway.key")" >> "$GITHUB_ENV"
+          else
+            echo "AGE_RECIPIENTS=$OWNER_RECIPIENTS" >> "$GITHUB_ENV"
+          fi
+
+      - name: Back up the database
+        env:
+          KEEP_PLAINTEXT_DIR: ${{ inputs.mode == 'nightly' && format('{0}/plain', runner.temp) || '' }}
+        run: |
+          bash scripts/ops/db-backup.sh "$TARGET" "$RUNNER_TEMP/out" 2>&1 | tee "$RUNNER_TEMP/backup.log"
+          { echo '```'; tail -n 14 "$RUNNER_TEMP/backup.log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Back up Storage objects
+        if: steps.plan.outputs.storage == 'true'
+        env:
+          SUPABASE_URL: ${{ env.ST_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.ST_KEY }}
+        run: |
+          name="$TARGET-storage-$(date -u +%Y%m%dT%H%M%SZ)"
+          mkdir -p "$RUNNER_TEMP/splain"
+          node scripts/ops/storage-backup.mjs backup "$RUNNER_TEMP/splain/$name" | tee -a "$GITHUB_STEP_SUMMARY"
+          r=(); for k in $AGE_RECIPIENTS; do r+=(-r "$k"); done
+          tar -C "$RUNNER_TEMP/splain" -cf - "$name" | age "${r[@]}" -o "$RUNNER_TEMP/out/$name.tar.age"
+          if [ "$MODE" = verify ]; then rm -rf "$RUNNER_TEMP/splain"; fi
+
+      - name: Upload encrypted backup
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.target }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/out/*.age
+          retention-days: ${{ inputs.mode == 'verify' && 1 || 30 }}
+          if-no-files-found: error
+
+      # verify mode: recover exactly as the owner would — from the uploaded artifact.
+      # Download by the exact artifact id the upload returned: looking it up by
+      # name right after upload is not always consistent ("Artifact not found").
+      - name: Download the artifact again
+        id: download
+        if: inputs.mode == 'verify'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.upload.outputs.artifact-id }}
+          path: ${{ runner.temp }}/downloaded
+
+      - name: Wait before retrying the download
+        if: inputs.mode == 'verify' && steps.download.outcome == 'failure'
+        run: sleep 30
+
+      - name: Download the artifact again (retry)
+        if: inputs.mode == 'verify' && steps.download.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.target }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded
+
+      - name: Decrypt the downloaded artifact
+        if: inputs.mode == 'verify'
+        run: |
+          rm -rf "$RUNNER_TEMP/plain" "$RUNNER_TEMP/out"
+          db="$(find "$RUNNER_TEMP/downloaded" -name '*.tar.gz.age' | head -1)"
+          CHECK_ONLY=1 AGE_IDENTITY_FILE="$RUNNER_TEMP/throwaway.key" bash scripts/ops/db-restore.sh "$db" | tail -1 | tee -a "$GITHUB_STEP_SUMMARY"
+          mkdir -p "$RUNNER_TEMP/plain" "$RUNNER_TEMP/splain"
+          age -d -i "$RUNNER_TEMP/throwaway.key" "$db" | tar -C "$RUNNER_TEMP/plain" -xzf -
+          for s in $(find "$RUNNER_TEMP/downloaded" -name '*-storage-*.tar.age'); do
+            [ -f "$s" ] && age -d -i "$RUNNER_TEMP/throwaway.key" "$s" | tar -C "$RUNNER_TEMP/splain" -xf -
+          done
+          echo "Recovered from the downloaded, encrypted artifact." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore drill
+        if: steps.plan.outputs.drill == 'true'
+        env:
+          REPORT: ${{ runner.temp }}/drill.md
+        run: |
+          st="$(ls -d "$RUNNER_TEMP"/splain/* 2>/dev/null | head -1 || true)"
+          set +e
+          bash scripts/ops/restore-drill.sh "$(ls -d "$RUNNER_TEMP"/plain/*)" $st
+          rc=$?
+          cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+
+      - name: Fail if Storage was not covered
+        if: steps.plan.outputs.blocked != ''
+        run: |
+          echo "::error::$TARGET Storage not backed up, not configured:${{ steps.plan.outputs.blocked }}"
+          exit 1
+
+      - name: Remove plaintext and keys
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/plain" "$RUNNER_TEMP/splain" "$RUNNER_TEMP/throwaway.key" "$RUNNER_TEMP/downloaded"
