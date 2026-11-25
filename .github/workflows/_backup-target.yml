@@ -26,6 +26,12 @@ on:
 permissions:
   contents: read
 
+# An explicit "bash" makes every step run with -eo pipefail. Without it a step
+# that pipes into tee (the backup) reports success even when the dump failed.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   backup:
     name: ${{ inputs.target }}
