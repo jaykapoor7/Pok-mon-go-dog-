@@ -27,6 +27,10 @@ export const SPEECH_LANGUAGES = ["en-IN", "hi-IN", "kn-IN", "ta-IN", "te-IN", "m
 export type SpeechLanguage = (typeof SPEECH_LANGUAGES)[number];
 export const isSpeechLanguage = (v: unknown): v is SpeechLanguage => typeof v === "string" && (SPEECH_LANGUAGES as readonly string[]).includes(v);
 
+/** Voices a person may choose for reading aloud (Bulbul v3). Kaju's own voice is the first. */
+export const SPEECH_VOICES = ["shubh", "ritu", "priya", "neha", "rahul", "kavya", "amit", "anand", "roopa", "kavitha"] as const;
+export type SpeechVoice = (typeof SPEECH_VOICES)[number];
+export const isSpeechVoice = (v: unknown): v is SpeechVoice => typeof v === "string" && (SPEECH_VOICES as readonly string[]).includes(v);
 const BASE = "https://api.sarvam.ai";
 const log = (op: string, status: number | string, size: number, ms: number) => console.info("kaju_sarvam", { op, status, size, ms });
 export class SarvamError extends Error { constructor(public reason: "off" | "provider" | "network" | "empty" | "timeout", public status = 0) { super(reason); } }
@@ -65,12 +69,12 @@ export async function hear(audio: ArrayBuffer, env: Record<string, string | unde
 }
 
 /** Text to speech in one language, as MP3 (base64). The text is said as written; nothing is translated here. */
-export async function speak(text: string, language: SpeechLanguage, env: Record<string, string | undefined> = process.env): Promise<{ audio: string; type: "audio/mpeg"; chars: number }> {
+export async function speak(text: string, language: SpeechLanguage, env: Record<string, string | undefined> = process.env, voice?: SpeechVoice): Promise<{ audio: string; type: "audio/mpeg"; chars: number }> {
   if (!sarvamApproved("speech", env)) throw new SarvamError("off");
   const line = text.replace(/\s+/g, " ").trim().slice(0, 1400);
   if (!line) throw new SarvamError("empty");
   const started = Date.now();
-  const base = { text: line, model: env.SARVAM_TTS_MODEL?.trim() || "bulbul:v3", speaker: env.SARVAM_TTS_SPEAKER?.trim() || "shubh", pace: Math.min(1.4, Math.max(0.8, Number(env.SARVAM_TTS_PACE) || 1.1)), speech_sample_rate: 24000, output_audio_codec: "mp3" };
+  const base = { text: line, model: env.SARVAM_TTS_MODEL?.trim() || "bulbul:v3", speaker: voice ?? (env.SARVAM_TTS_SPEAKER?.trim() || "shubh"), pace: Math.min(1.4, Math.max(0.8, Number(env.SARVAM_TTS_PACE) || 1.1)), speech_sample_rate: 24000, output_audio_codec: "mp3" };
   const call = (body: Record<string, unknown>) => fetch(`${BASE}/text-to-speech`, { method: "POST", headers: { "api-subscription-key": key(env), "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(20_000), cache: "no-store" });
   try {
     /* The language field has had two names across Bulbul versions; the second is tried only when the first is refused as a bad request. */

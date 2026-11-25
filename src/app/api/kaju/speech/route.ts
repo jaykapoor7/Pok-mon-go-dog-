@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { caller } from "@/lib/connections/server";
-import { hear, isSpeechLanguage, sarvamApproved, speak, SarvamError } from "@/lib/sarvam";
+import { hear, isSpeechLanguage, isSpeechVoice, sarvamApproved, speak, SarvamError } from "@/lib/sarvam";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const maxDuration = 60;
 
    GET  → { speech: boolean }     whether this deployment offers it (no key or approval detail is exposed)
    POST ?op=hear  body: WAV audio, 16 kHz mono, at most 30 s → { transcript, lang, confidence }
-   POST ?op=speak { text, lang }  → { audio (base64 MP3), type }
+   POST ?op=speak { text, lang, voice? }  → { audio (base64 MP3), type }; voice is one of a fixed list
    Signed-in people only. Nothing is stored and no words are logged. */
 
 const no = (status: number, error: string) => NextResponse.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
@@ -51,10 +51,10 @@ export async function POST(req: Request) {
     }
     if (op === "speak") {
       if (limited(c.userId, "speak", 90)) return no(429, "Too many voice turns at once. Wait a minute and try again.");
-      const body = (await req.json().catch(() => null)) as { text?: unknown; lang?: unknown } | null;
+      const body = (await req.json().catch(() => null)) as { text?: unknown; lang?: unknown; voice?: unknown } | null;
       const text = typeof body?.text === "string" ? body.text : "";
       if (!text.trim()) return no(400, "Nothing to say.");
-      const r = await speak(text, isSpeechLanguage(body?.lang) ? body.lang : "en-IN");
+      const r = await speak(text, isSpeechLanguage(body?.lang) ? body.lang : "en-IN", process.env, isSpeechVoice(body?.voice) ? body.voice : undefined);
       return NextResponse.json({ audio: r.audio, type: r.type, chars: r.chars }, { headers: { "Cache-Control": "no-store" } });
     }
     return no(400, "Unknown voice request.");
