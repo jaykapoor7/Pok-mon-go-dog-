@@ -138,6 +138,17 @@ GitHub delays scheduled runs heavily: the AnimalID worker, scheduled every 10 mi
 
 ### Setup (owner)
 
+**One command does all of it** on your own machine, using your logged-in `gh` and `supabase` CLIs: `bash scripts/ops/setup-backups.sh`.
+
+- It creates your age key at `~/.config/straypaw/straypaw-backup.key`, readable only by you, and sets the public half as `BACKUP_AGE_RECIPIENTS`.
+- It reads both projects' service keys with `supabase projects api-keys --reveal` and puts them straight into GitHub secrets.
+- It asks, with hidden input, for staging's Session pooler URI, refuses the production one and test-connects.
+- It creates the healthchecks.io heartbeat from an API key, or takes an existing ping URL.
+
+Secrets travel only through stdin. None is printed, put on a command line, or written to disk except your private key. Use `setup-backups.sh check` to list what is configured (names only), and `setup-backups.sh verify <artifact.zip>` to decrypt a downloaded backup with your key.
+
+The manual equivalent:
+
 1. `age-keygen -o straypaw-backup.key` on your machine. Keep two offline copies; without the key the backups cannot be read. Optionally create a second key for a co-founder.
 2. Repository **variable** `BACKUP_AGE_RECIPIENTS` = the `age1…` public key(s), space separated.
 3. Repository **secrets**:
