@@ -14,7 +14,30 @@ async function start({ out, width = 1600, height = 900, scale = 2, launch = {}, 
   /* The flag makes Chrome's screencast deliver device pixels (2x), not CSS pixels. */
   const browser = await chromium.launch({ ...launch, args: ['--hide-scrollbars', '--force-color-profile=srgb', `--force-device-scale-factor=${scale}`, ...(launch.args || [])] });
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, locale: 'en-IN', timezoneId: 'Asia/Kolkata', reducedMotion: 'no-preference', ...context });
+  /* Voice. The microphone is fed from audio files (the spoken questions), one per turn, in order: the page records
+     and sends them exactly as it would a person's voice. Each file's start, and each answer the page plays, is logged
+     with its time and saved, so the film can lay the real audio back under the picture. */
+  const questions = (context.questions || []).slice(); delete context.questions;
+  await ctx.addInitScript((count) => {
+    let turn = 0;
+    if (count && navigator.mediaDevices) navigator.mediaDevices.getUserMedia = async () => {
+      const i = Math.min(turn++, count - 1);
+      const Ctx = window.AudioContext || window.webkitAudioContext; const ac = new Ctx();
+      const buf = await ac.decodeAudioData(await (await fetch(`/__question/${i}.wav`)).arrayBuffer());
+      const dest = ac.createMediaStreamDestination(); const src = ac.createBufferSource(); src.buffer = buf; src.connect(dest);
+      /* A short quiet lead-in, as when a person draws breath after tapping the microphone. */
+      setTimeout(() => { src.start(); window.__recAudio?.({ kind: 'question', i }); }, 350);
+      return dest.stream;
+    };
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (...a) {
+      const el = this; const src = el.src || el.currentSrc || '';
+      if (src.startsWith('data:audio') && !el.muted) el.addEventListener('playing', () => window.__recAudio?.({ kind: 'answer', src }), { once: true });
+      return play.apply(el, a);
+    };
+  }, questions.length);
   const page = await ctx.newPage();
+  if (questions.length) await ctx.route('**/__question/*.wav', (route) => { const i = Number(route.request().url().match(/(\d+)\.wav/)[1]); route.fulfill({ status: 200, contentType: 'audio/wav', body: fs.readFileSync(questions[i].file) }); });
   const cdp = await ctx.newCDPSession(page);
   const log = { width, height, scale, frames: [], pointer: [], clicks: [], keys: [], marks: [], audio: [] };
   let t0 = null, n = 0, on = false; const pending = [];
@@ -28,6 +51,14 @@ async function start({ out, width = 1600, height = 900, scale = 2, launch = {}, 
     log.frames.push({ t: +(ts - t0).toFixed(4), file });
   });
   let mx = width / 2, my = height * 0.6;
+  let answers = 0;
+  const probe = (f) => { try { return +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim(); } catch { return undefined; } };
+  await ctx.exposeFunction('__recAudio', (e) => {
+    if (!on) return;
+    fs.mkdirSync(path.join(out, 'audio'), { recursive: true });
+    if (e.kind === 'question') { const q = questions[e.i]; const file = `audio/question-${e.i}.wav`; fs.copyFileSync(q.file, path.join(out, file)); log.audio.push({ t: +now().toFixed(3), file, kind: 'question', lang: q.lang, text: q.text, gloss: q.gloss, duration: probe(q.file) }); }
+    else { const m = /^data:(audio\/[\w.+-]+);base64,(.*)$/.exec(e.src); if (!m) return; const file = `audio/answer-${answers++}.mp3`; fs.writeFileSync(path.join(out, file), Buffer.from(m[2], 'base64')); log.audio.push({ t: +now().toFixed(3), file, kind: 'answer', duration: probe(path.join(out, file)) }); }
+  });
   const rec = {
     page, ctx, browser, log, out, now,
     async begin() { on = true; await cdp.send('Page.startScreencast', { format: 'jpeg', quality, everyNthFrame: 1 }); await sleep(250); log.pointer.push({ t: now(), x: mx, y: my }); },
