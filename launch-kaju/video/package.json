@@ -1,0 +1,26 @@
+{
+  "name": "straypaw-kaju-launch-films",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:takes": "node scripts/prepare.mjs",
+    "audio": "python3 make_kaju_music.py && python3 make_sfx.py",
+    "studio": "node scripts/prepare.mjs && remotion studio",
+    "render": "node scripts/render.mjs",
+    "render:all": "node scripts/render.mjs --all",
+    "thumbs": "node scripts/thumbs.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:engine": "node scripts/test-engine.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "remotion": "4.0.539",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@fontsource-variable/noto-sans-kannada": "^5.0.0",
+    "@types/react": "19.1.0",
+    "typescript": "5.6.3"
+  }
+}
